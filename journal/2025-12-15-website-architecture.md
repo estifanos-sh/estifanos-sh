@@ -29,30 +29,30 @@ The website is built on a modern JavaScript/TypeScript stack with specialized to
 
 ## Core Technologies
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| SvelteKit | 2.43 | Full-stack framework with file-based routing |
-| Svelte | 5.39 | Reactive UI components with runes |
-| TypeScript | 5.9 | Type-safe development |
-| Convex | 1.30 | Backend-as-a-service with real-time database |
-| convex-svelte | 0.0.12 | Svelte bindings for Convex queries |
-| Tailwind CSS | 4.1 | Utility-first styling |
-| Typst | CLI | Document typesetting system |
+| Technology    | Version | Purpose                                      |
+| ------------- | ------- | -------------------------------------------- |
+| SvelteKit     | 2.43    | Full-stack framework with file-based routing |
+| Svelte        | 5.39    | Reactive UI components with runes            |
+| TypeScript    | 5.9     | Type-safe development                        |
+| Convex        | 1.30    | Backend-as-a-service with real-time database |
+| convex-svelte | 0.0.12  | Svelte bindings for Convex queries           |
+| Tailwind CSS  | 4.1     | Utility-first styling                        |
+| Typst         | CLI     | Document typesetting system                  |
 
 ## Content Processing Libraries
 
-| Library | Purpose |
-|---------|---------|
-| marked | Markdown to HTML conversion |
-| KaTeX | LaTeX math rendering in browser |
-| mermaid | Diagram rendering in browser |
-| @mermaid-js/mermaid-cli | Pre-rendered diagrams for PDFs |
-| gray-matter | YAML frontmatter parsing |
-| p-limit | Parallel processing with concurrency control |
+| Library                 | Purpose                                      |
+| ----------------------- | -------------------------------------------- |
+| marked                  | Markdown to HTML conversion                  |
+| KaTeX                   | LaTeX math rendering in browser              |
+| mermaid                 | Diagram rendering in browser                 |
+| @mermaid-js/mermaid-cli | Pre-rendered diagrams for PDFs               |
+| gray-matter             | YAML frontmatter parsing                     |
+| p-limit                 | Parallel processing with concurrency control |
 
 ## Package Manager
 
-The project uses **Bun** as the package manager and runtime, providing fast dependency installation and script execution.
+The project uses **Vite+** as the primary toolchain for package management, runtime orchestration, and frontend workflows.
 
 # Project Structure
 
@@ -91,11 +91,11 @@ robelest/
 
 SvelteKit's file-based routing with server-side rendering:
 
-| Route | SSR | Purpose |
-|-------|-----|---------|
-| `/` | No | Home page with about, links |
-| `/journal` | Yes | Journal listing with tag filtering |
-| `/journal/[slug]` | Yes | Individual journal entry |
+| Route             | SSR | Purpose                            |
+| ----------------- | --- | ---------------------------------- |
+| `/`               | No  | Home page with about, links        |
+| `/journal`        | Yes | Journal listing with tag filtering |
+| `/journal/[slug]` | Yes | Individual journal entry           |
 
 # Convex Integration
 
@@ -112,7 +112,7 @@ export default defineSchema({
     title: v.string(),
     slug: v.string(),
     description: v.optional(v.string()),
-    content: v.string(),              // Markdown content
+    content: v.string(), // Markdown content
     pdfStorageId: v.id("_storage"),
     pdfUrl: v.string(),
     publishDate: v.string(),
@@ -139,12 +139,12 @@ Journal pages use server-side rendering with `+page.server.ts` to fetch initial 
 // +page.server.ts
 export const load = (async ({ setHeaders }) => {
   setHeaders({
-    'cache-control': 'public, max-age=60, s-maxage=300'
+    "cache-control": "public, max-age=60, s-maxage=300",
   });
 
   const client = new ConvexHttpClient(PUBLIC_CONVEX_URL);
-  const journalEntries = await client.query(api.journal.list, { 
-    publishedOnly: true 
+  const journalEntries = await client.query(api.journal.list, {
+    publishedOnly: true,
   });
 
   return { journalEntries };
@@ -180,7 +180,7 @@ The content management system converts markdown source files to PDFs via Typst a
 
 ```mermaid
 graph TD
-    A[Write Markdown .md] --> B[Run bun sync]
+    A[Write Markdown .md] --> B[Run vp run sync]
     B --> C[Parse Frontmatter]
     C --> D[Extract Mermaid Blocks]
     D --> E[Render Diagrams to PNG]
@@ -230,8 +230,8 @@ The `scripts/sync.ts` CLI handles the complete sync process with parallel proces
 ### Parallel Processing
 
 ```typescript
-const DIAGRAM_LIMIT = pLimit(4);  // 4 concurrent diagram renders
-const FILE_LIMIT = pLimit(6);     // 6 concurrent file processes
+const DIAGRAM_LIMIT = pLimit(4); // 4 concurrent diagram renders
+const FILE_LIMIT = pLimit(6); // 6 concurrent file processes
 ```
 
 ### Mermaid Diagram Rendering
@@ -242,10 +242,12 @@ Diagrams are pre-rendered to PNG for PDF inclusion:
 async function renderMermaidDiagram(block: MermaidBlock): Promise<void> {
   // Skip if cached (content-hash based)
   if (await fileExists(block.svgPath)) return;
-  
+
   await execAsync(
-    `bunx mmdc -i "${mmdPath}" -o "${block.svgPath}" -b white -s 2`,
-    { timeout: 30000 }
+    `vp dlx @mermaid-js/mermaid-cli -i "${mmdPath}" -o "${block.svgPath}" -b white -s 2`,
+    {
+      timeout: 30000,
+    },
   );
 }
 ```
@@ -260,7 +262,7 @@ The sync script automatically handles special characters that break YAML parsing
 - Special YAML characters (`:`, `#`, etc.) are quoted
 
 ```bash
-bun sync
+vp run sync
 ```
 
 # Styling System
@@ -269,15 +271,15 @@ The visual design follows an editorial aesthetic with a warm, paper-inspired col
 
 ## Color Palette
 
-| Variable | Value | Usage |
-|----------|-------|-------|
-| `--th-base` | `#faf8f5` | Background |
-| `--th-surface` | `#f5f2ed` | Cards, surfaces |
-| `--th-border` | `#e8e4dc` | Borders, dividers |
-| `--th-muted` | `#8c8780` | Secondary text |
-| `--th-subtle` | `#6b665f` | Tertiary text |
-| `--th-text` | `#1a1816` | Primary text |
-| `--th-accent` | `#c25d3a` | Links, highlights (terracotta) |
+| Variable       | Value     | Usage                          |
+| -------------- | --------- | ------------------------------ |
+| `--th-base`    | `#faf8f5` | Background                     |
+| `--th-surface` | `#f5f2ed` | Cards, surfaces                |
+| `--th-border`  | `#e8e4dc` | Borders, dividers              |
+| `--th-muted`   | `#8c8780` | Secondary text                 |
+| `--th-subtle`  | `#6b665f` | Tertiary text                  |
+| `--th-text`    | `#1a1816` | Primary text                   |
+| `--th-accent`  | `#c25d3a` | Links, highlights (terracotta) |
 
 ## Typography
 
@@ -419,7 +421,7 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant CLI as bun sync
+    participant CLI as vp run sync
     participant M as Convex Mutations
     participant S as Storage
     participant D as Database
@@ -445,8 +447,8 @@ The application is designed for serverless deployment with minimal infrastructur
 ## Build Process
 
 ```bash
-bun run build    # Create production build
-bun run preview  # Test production build locally
+vp build    # Create production build
+vp preview  # Test production build locally
 ```
 
 ## Requirements
@@ -457,8 +459,8 @@ bun run preview  # Test production build locally
 
 ## Environment Variables
 
-| Variable | Purpose |
-|----------|---------|
+| Variable            | Purpose               |
+| ------------------- | --------------------- |
 | `PUBLIC_CONVEX_URL` | Convex deployment URL |
 
 # Conclusion
@@ -475,4 +477,4 @@ This architecture provides a solid foundation for a personal portfolio with:
 
 The markdown-based content management system enables authoring professional academic documents locally while seamlessly publishing them to the web.
 
-*This document was written in markdown and rendered via the robelest content management system.*
+_This document was written in markdown and rendered via the robelest content management system._

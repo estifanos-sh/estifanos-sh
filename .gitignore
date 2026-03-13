@@ -16,6 +16,6 @@ Thumbs.db
 !.env.example
 !.env.test
 
-# Lock files (bun.lock is committed)
-pnpm-lock.yaml
+# Lock files
+bun.lock
 package-lock.json

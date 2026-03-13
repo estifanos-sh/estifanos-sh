@@ -7,7 +7,7 @@ tags:
   - components
   - automation
 publishDate: 2025-12-17
-published: false 
+published: false
 ---
 
 # Abstract
@@ -67,6 +67,7 @@ flowchart LR
 ## What We Need
 
 A reactive layer that:
+
 - Defines data schemas with built-in validation
 - Organizes data collection into workflows
 - Declares trigger conditions declaratively
@@ -89,6 +90,7 @@ At Trestle, we build software for human services organizations - case management
 The challenge: this data needs to trigger actions. When a client completes their housing assessment, the HMIS submission should fire automatically. When all intake fields are complete, the eligibility check should run. When a case note mentions a crisis, the supervisor should be alerted.
 
 **What we needed:**
+
 - Reusable data definitions that work across forms
 - Automatic triggers when conditions are met
 - Prerequisite chains (assessment must complete before submission)
@@ -142,11 +144,11 @@ A **Card** is the smallest fragment of data with its own validation rules. Cards
 
 ```typescript
 interface Card {
-  slug: string;           // Unique identifier
-  label: string;          // Human-readable name
-  type: CardType;         // STRING, NUMBER, DATE, EMAIL, SSN, etc.
+  slug: string; // Unique identifier
+  label: string; // Human-readable name
+  type: CardType; // STRING, NUMBER, DATE, EMAIL, SSN, etc.
   classification: string; // public, confidential, restricted
-  subjectType: string;    // What entity this card belongs to
+  subjectType: string; // What entity this card belongs to
 }
 ```
 
@@ -162,7 +164,7 @@ interface Procedure {
     type: string;
     operation: "create" | "update";
   };
-  cards: ProcedureCard[];  // Which cards to collect
+  cards: ProcedureCard[]; // Which cards to collect
 }
 ```
 
@@ -173,15 +175,15 @@ A **Deliverable** defines conditions for triggering side effects when card data 
 ```typescript
 interface Deliverable {
   name: string;
-  requiredCards: string[];     // What cards must be present
+  requiredCards: string[]; // What cards must be present
   conditions?: {
     time?: { after: string; before?: string };
     date?: { daysBeforeEvent?: number };
     dayOfWeek?: number[];
   };
-  prerequisites?: string[];    // Other deliverables that must complete first
-  callbackType: string;        // "automation", "webhook", "function"
-  callbackConfig: any;         // Blueprint ID, URL, etc.
+  prerequisites?: string[]; // Other deliverables that must complete first
+  callbackType: string; // "automation", "webhook", "function"
+  callbackConfig: any; // Blueprint ID, URL, etc.
 }
 ```
 
@@ -269,8 +271,16 @@ await bridgeClient.createProcedure(ctx, {
   type: "form",
   subject: { type: "client", operation: "create" },
   cards: [
-    { slug: "first_name", required: true, writeTo: { path: "$.attributes[?(@.slug=='first_name')].value" } },
-    { slug: "last_name", required: true, writeTo: { path: "$.attributes[?(@.slug=='last_name')].value" } },
+    {
+      slug: "first_name",
+      required: true,
+      writeTo: { path: "$.attributes[?(@.slug=='first_name')].value" },
+    },
+    {
+      slug: "last_name",
+      required: true,
+      writeTo: { path: "$.attributes[?(@.slug=='last_name')].value" },
+    },
     { slug: "email", required: true, writeTo: { path: "$.attributes[?(@.slug=='email')].value" } },
   ],
 });
@@ -286,7 +296,7 @@ await bridgeClient.createDeliverable(ctx, {
   requiredCards: ["first_name", "email"],
   conditions: {
     time: { after: "09:00", before: "17:00" },
-    dayOfWeek: [1, 2, 3, 4, 5],  // Monday-Friday
+    dayOfWeek: [1, 2, 3, 4, 5], // Monday-Friday
   },
   callbackType: "webhook",
   callbackConfig: { url: "https://api.example.com/welcome" },
@@ -327,30 +337,30 @@ for (const deliverable of triggered) {
 
 Bridge supports 11 card types with built-in validation:
 
-| Type | Description | Example |
-|------|-------------|---------|
-| `STRING` | Short text | "John" |
-| `TEXT` | Long text | Multi-paragraph description |
-| `NUMBER` | Numeric value | 42, 3.14 |
-| `BOOLEAN` | Yes/No | true, false |
-| `DATE` | Date value | "2024-01-15" |
-| `EMAIL` | Email address | "user@example.com" |
-| `URL` | Web URL | "https://example.com" |
-| `PHONE` | Phone number | "+1-555-123-4567" |
-| `SSN` | Social Security Number | "123-45-6789" |
-| `ADDRESS` | Physical address | Structured object |
-| `SUBJECT` | Reference to entity | client ID |
-| `ARRAY` | List of values | ["tag1", "tag2"] |
+| Type      | Description            | Example                     |
+| --------- | ---------------------- | --------------------------- |
+| `STRING`  | Short text             | "John"                      |
+| `TEXT`    | Long text              | Multi-paragraph description |
+| `NUMBER`  | Numeric value          | 42, 3.14                    |
+| `BOOLEAN` | Yes/No                 | true, false                 |
+| `DATE`    | Date value             | "2024-01-15"                |
+| `EMAIL`   | Email address          | "user@example.com"          |
+| `URL`     | Web URL                | "https://example.com"       |
+| `PHONE`   | Phone number           | "+1-555-123-4567"           |
+| `SSN`     | Social Security Number | "123-45-6789"               |
+| `ADDRESS` | Physical address       | Structured object           |
+| `SUBJECT` | Reference to entity    | client ID                   |
+| `ARRAY`   | List of values         | ["tag1", "tag2"]            |
 
 ## Classification Levels
 
 Cards integrate with the Taxonomy component for data governance:
 
-| Level | Description | Access |
-|-------|-------------|--------|
-| `PUBLIC` | General information | All authenticated users |
-| `CONFIDENTIAL` | Sensitive data | Admins and above |
-| `RESTRICTED` | Highly sensitive (PII) | Special clearance only |
+| Level          | Description            | Access                  |
+| -------------- | ---------------------- | ----------------------- |
+| `PUBLIC`       | General information    | All authenticated users |
+| `CONFIDENTIAL` | Sensitive data         | Admins and above        |
+| `RESTRICTED`   | Highly sensitive (PII) | Special clearance only  |
 
 ## Deliverable State Machine
 
@@ -486,12 +496,12 @@ function aggregateContext(...sources: Subject[]): ExecutionContext {
 
 Bridge is part of a family of Convex components that work together:
 
-| Component | Purpose | Integration |
-|-----------|---------|-------------|
-| **[Taxonomy](/journal/taxonomy-data-governance)** | Data governance | Card classifications sync to field labels |
-| **[Crane](/journal/crane-browser-automation)** | Browser automation | Deliverables trigger blueprint execution |
-| **[TSP](/journal/tsp-data-contracts)** | Data contracts | Card definitions map to Stack cards |
-| **[Replicate](/journal/replicate-local-first)** | Offline-first sync | Offline-queued procedures sync on reconnect |
+| Component                                         | Purpose            | Integration                                 |
+| ------------------------------------------------- | ------------------ | ------------------------------------------- |
+| **[Taxonomy](/journal/taxonomy-data-governance)** | Data governance    | Card classifications sync to field labels   |
+| **[Crane](/journal/crane-browser-automation)**    | Browser automation | Deliverables trigger blueprint execution    |
+| **[TSP](/journal/tsp-data-contracts)**            | Data contracts     | Card definitions map to Stack cards         |
+| **[Replicate](/journal/replicate-local-first)**   | Offline-first sync | Offline-queued procedures sync on reconnect |
 
 Each component is independently installable. Use one, some, or all - they compose cleanly because each runs in isolated tables.
 

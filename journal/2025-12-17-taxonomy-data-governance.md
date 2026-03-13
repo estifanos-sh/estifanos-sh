@@ -7,7 +7,7 @@ tags:
   - components
   - architecture
 publishDate: 2025-12-17
-published: false 
+published: false
 ---
 
 # Abstract
@@ -87,14 +87,14 @@ flowchart LR
 
 ## The Comparison
 
-| Aspect | External Platform | Built-in Governance |
-|--------|-------------------|---------------------|
-| **Data sources** | Many (SQL, APIs, warehouses) | One (your database) |
-| **Integration** | Complex connectors | Native component |
-| **Discovery** | Automated scanning | Schema-defined sync |
-| **Cost** | Enterprise pricing | Open source |
-| **Control** | External SaaS | Complete codebase ownership |
-| **Customization** | Configuration-based | Code-level |
+| Aspect            | External Platform            | Built-in Governance         |
+| ----------------- | ---------------------------- | --------------------------- |
+| **Data sources**  | Many (SQL, APIs, warehouses) | One (your database)         |
+| **Integration**   | Complex connectors           | Native component            |
+| **Discovery**     | Automated scanning           | Schema-defined sync         |
+| **Cost**          | Enterprise pricing           | Open source                 |
+| **Control**       | External SaaS                | Complete codebase ownership |
+| **Customization** | Configuration-based          | Code-level                  |
 
 ---
 
@@ -115,6 +115,7 @@ When a client walks into a shelter or social services office, they're sharing de
 **The problem**: External governance platforms are designed for enterprises with dedicated privacy engineering teams. Our clients are nonprofits with limited IT budgets. They need compliance built into the software they already use, not another vendor to manage.
 
 **What we needed:**
+
 - DSR workflows that case workers can execute without IT involvement
 - Consent tracking integrated with intake forms
 - Automatic retention enforcement (many grants require 7-year retention)
@@ -222,7 +223,7 @@ interface FieldLabel {
   tableName: string;
   fieldPath: string;
   sensitivityLevel: "public" | "internal" | "confidential" | "restricted";
-  piiCategories: string[];  // "email", "ssn", "phone", etc.
+  piiCategories: string[]; // "email", "ssn", "phone", etc.
   isDirectIdentifier: boolean;
   eligibleForErasure: boolean;
   retentionPolicyId?: string;
@@ -248,13 +249,16 @@ const fieldTypeToPII: Record<string, string[]> = {
   ADDRESS: ["address"],
 };
 
-triggers.register("fields", taxonomy.trigger({
-  fieldPath: (field) => field.slug,
-  tableName: (field) => field.entityType,
-  sensitivityLevel: (field) => field.securityLevel.toLowerCase(),
-  piiCategories: (field) => fieldTypeToPII[field.type] ?? [],
-  isDirectIdentifier: (field) => ["EMAIL", "PHONE", "SSN"].includes(field.type),
-}));
+triggers.register(
+  "fields",
+  taxonomy.trigger({
+    fieldPath: (field) => field.slug,
+    tableName: (field) => field.entityType,
+    sensitivityLevel: (field) => field.securityLevel.toLowerCase(),
+    piiCategories: (field) => fieldTypeToPII[field.type] ?? [],
+    isDirectIdentifier: (field) => ["EMAIL", "PHONE", "SSN"].includes(field.type),
+  }),
+);
 ```
 
 ## 4. Use the Client
@@ -289,10 +293,10 @@ type DSRStatus =
 
 // State transitions
 const transitions = {
-  "pending_verification": ["pending_legal_review", "rejected", "cancelled"],
-  "pending_legal_review": ["processing", "rejected", "cancelled"],
-  "processing": ["completed", "cancelled"],
-  "completed": ["archived"],
+  pending_verification: ["pending_legal_review", "rejected", "cancelled"],
+  pending_legal_review: ["processing", "rejected", "cancelled"],
+  processing: ["completed", "cancelled"],
+  completed: ["archived"],
 };
 ```
 
@@ -325,9 +329,15 @@ async function enforceRetention() {
       if (await hasPendingDSR(record)) continue;
 
       switch (policy.expirationAction) {
-        case "delete": await deleteRecord(record); break;
-        case "anonymize": await anonymizeRecord(record); break;
-        case "archive": await archiveRecord(record); break;
+        case "delete":
+          await deleteRecord(record);
+          break;
+        case "anonymize":
+          await anonymizeRecord(record);
+          break;
+        case "archive":
+          await archiveRecord(record);
+          break;
       }
     }
   }
@@ -377,11 +387,13 @@ flowchart TB
 ### PII Categories
 
 **Standard PII:**
+
 - `name`, `email`, `phone`, `address`
 - `date_of_birth`, `ssn`, `credit_card`
 - `ip_address`, `device_id`, `financial`, `government_id`
 
 **Special Categories (GDPR Article 9):**
+
 - `health`, `biometric`, `genetic`
 - `racial_ethnic`, `political_opinion`
 - `religious_belief`, `sexual_orientation`
@@ -412,12 +424,12 @@ stateDiagram-v2
 
 ### DSR Types and Deadlines
 
-| Type | GDPR Article | CCPA Section | GDPR Deadline | CCPA Deadline |
-|------|--------------|--------------|---------------|---------------|
-| **Access** | Article 15 | 1798.100 | 30 days | 45 days |
-| **Erasure** | Article 17 | 1798.105 | 30 days | 45 days |
-| **Portability** | Article 20 | 1798.100 | 30 days | 45 days |
-| **Rectification** | Article 16 | 1798.106 | 30 days | 45 days |
+| Type              | GDPR Article | CCPA Section | GDPR Deadline | CCPA Deadline |
+| ----------------- | ------------ | ------------ | ------------- | ------------- |
+| **Access**        | Article 15   | 1798.100     | 30 days       | 45 days       |
+| **Erasure**       | Article 17   | 1798.105     | 30 days       | 45 days       |
+| **Portability**   | Article 20   | 1798.100     | 30 days       | 45 days       |
+| **Rectification** | Article 16   | 1798.106     | 30 days       | 45 days       |
 
 ## Erasure with Legal Hold Check
 
@@ -482,16 +494,16 @@ stateDiagram-v2
 
 Different PII types require different anonymization approaches:
 
-| Category | Method | Example |
-|----------|--------|---------|
-| `email` | Pseudonymize | `PSEUDO_abc123_email` |
-| `phone` | Suppress | `REDACTED` |
-| `ssn` | Suppress | `XXX-XX-XXXX` |
-| `name` | Pseudonymize | `PSEUDO_def456_name` |
-| `date_of_birth` | Generalize | `1985` (year only) |
-| `address` | Generalize | `San Francisco, CA` (city only) |
-| `ip_address` | Generalize | `192.168.0.0/16` |
-| `health` | Suppress | `null` |
+| Category        | Method       | Example                         |
+| --------------- | ------------ | ------------------------------- |
+| `email`         | Pseudonymize | `PSEUDO_abc123_email`           |
+| `phone`         | Suppress     | `REDACTED`                      |
+| `ssn`           | Suppress     | `XXX-XX-XXXX`                   |
+| `name`          | Pseudonymize | `PSEUDO_def456_name`            |
+| `date_of_birth` | Generalize   | `1985` (year only)              |
+| `address`       | Generalize   | `San Francisco, CA` (city only) |
+| `ip_address`    | Generalize   | `192.168.0.0/16`                |
+| `health`        | Suppress     | `null`                          |
 
 ```mermaid
 %%{init: {'theme': 'neutral'}}%%
@@ -532,12 +544,12 @@ flowchart LR
 
 Taxonomy is part of a family of Convex components that work together:
 
-| Component | Purpose | Integration |
-|-----------|---------|-------------|
-| **[Bridge](/journal/bridge-reactive-data)** | Reactive data pipelines | Card classifications sync to field labels |
-| **[Crane](/journal/crane-browser-automation)** | Browser automation | Credential vault respects clearance levels |
-| **[TSP](/journal/tsp-data-contracts)** | Data contracts | Data export respects PII categories |
-| **[Replicate](/journal/replicate-local-first)** | Offline-first sync | Local data respects classification rules |
+| Component                                       | Purpose                 | Integration                                |
+| ----------------------------------------------- | ----------------------- | ------------------------------------------ |
+| **[Bridge](/journal/bridge-reactive-data)**     | Reactive data pipelines | Card classifications sync to field labels  |
+| **[Crane](/journal/crane-browser-automation)**  | Browser automation      | Credential vault respects clearance levels |
+| **[TSP](/journal/tsp-data-contracts)**          | Data contracts          | Data export respects PII categories        |
+| **[Replicate](/journal/replicate-local-first)** | Offline-first sync      | Local data respects classification rules   |
 
 Each component is independently installable. Use one, some, or all - they compose cleanly because each runs in isolated tables.
 

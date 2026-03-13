@@ -6,7 +6,7 @@ tags:
   - components
   - architecture
 publishDate: 2025-12-23
-published: false 
+published: false
 ---
 
 # Component Authoring: The API Design Journey
@@ -23,7 +23,7 @@ This is the story of how we built component APIs at Trestle.
 
 In late 2024, Convex announced components—self-contained modules with isolated tables and clean composition. The R2 storage component was one of the examples. But the authoring guide wasn't public yet.
 
-We wanted Replicate to be a *proper* component. Not a library. Not copy-paste code. A real component that developers could install with `bun add` and mount with `app.use()`.
+We wanted Replicate to be a _proper_ component. Not a library. Not copy-paste code. A real component that developers could install with `bun add` and mount with `app.use()`.
 
 So we reverse-engineered it.
 
@@ -67,6 +67,7 @@ We moved to Rslib (built on Rspack) for proper bundling:
 ```
 
 Benefits were immediate:
+
 - **Fast**: Rspack is significantly faster than Webpack
 - **Dual ESM/CJS**: Native support for both module formats
 - **Tree-shaking**: Dead code elimination
@@ -148,6 +149,7 @@ export const compact = r.compact("tasks", { threshold: 5_000_000 });
 ```
 
 This worked, but required developers to:
+
 - Import from `_generated` (internal knowledge)
 - Understand the type parameter threading
 - Export each function individually
@@ -213,11 +215,14 @@ const tasks = collection.create({
 
 // Usage
 tasks.insert({ id: uuid(), text: "New task", isCompleted: false });
-tasks.update(id, (draft) => { draft.isCompleted = true });
+tasks.update(id, (draft) => {
+  draft.isCompleted = true;
+});
 tasks.delete(id);
 ```
 
 The evolution prioritized:
+
 - **Fewer imports** - Don't make users import from generated files
 - **Type inference** - Let TypeScript do the work
 - **Familiar patterns** - TanStack-style APIs that developers recognize
@@ -376,12 +381,7 @@ export default defineConfig({
   clean: true,
 
   // Externalize Convex and peer deps
-  external: [
-    "convex",
-    "convex/server",
-    "convex/values",
-    /^@convex\//,
-  ],
+  external: ["convex", "convex/server", "convex/values", /^@convex\//],
 
   treeshake: true,
   sourcemap: true,
@@ -404,13 +404,13 @@ Everything else is implementation detail.
 
 # Resources
 
-| Resource | Description |
-|----------|-------------|
-| [tsdown](https://github.com/nicksrandall/tsdown) | Minimal TypeScript library bundler |
-| [Convex Components Guide](https://docs.convex.dev/components) | Official component authoring docs |
-| [Replicate](https://github.com/trestleinc/replicate) | Reference implementation of these patterns |
-| [Package.json exports](https://nodejs.org/api/packages.html#exports) | Modern entry point configuration |
+| Resource                                                             | Description                                |
+| -------------------------------------------------------------------- | ------------------------------------------ |
+| [tsdown](https://github.com/nicksrandall/tsdown)                     | Minimal TypeScript library bundler         |
+| [Convex Components Guide](https://docs.convex.dev/components)        | Official component authoring docs          |
+| [Replicate](https://github.com/trestleinc/replicate)                 | Reference implementation of these patterns |
+| [Package.json exports](https://nodejs.org/api/packages.html#exports) | Modern entry point configuration           |
 
 ---
 
-*Built at [Trestle](https://trestle.com)—software that amplifies human compassion.*
+_Built at [Trestle](https://trestle.com)—software that amplifies human compassion._

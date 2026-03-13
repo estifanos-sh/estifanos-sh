@@ -7,7 +7,7 @@ tags:
   - components
   - automation
 publishDate: 2025-12-17
-published: false 
+published: false
 ---
 
 # Abstract
@@ -39,6 +39,7 @@ Crane follows this pattern. Install it, mount it, and you have a complete browse
 ## The API-less Integration Problem
 
 Organizations must submit data to external systems that lack APIs:
+
 - Government portals (benefits systems, regulatory filings)
 - Legacy enterprise applications
 - Third-party services with web-only interfaces
@@ -70,14 +71,15 @@ flowchart LR
 
 Traditional automation approaches have credential problems:
 
-| Approach | Problem |
-|----------|---------|
-| Hardcoded in scripts | Exposed in source control |
-| Environment variables | Accessible to all processes |
-| Secret managers | Server-side decryption exposes plaintext |
-| Browser extensions | User-specific, not automatable |
+| Approach              | Problem                                  |
+| --------------------- | ---------------------------------------- |
+| Hardcoded in scripts  | Exposed in source control                |
+| Environment variables | Accessible to all processes              |
+| Secret managers       | Server-side decryption exposes plaintext |
+| Browser extensions    | User-specific, not automatable           |
 
 What we need is automation where credentials are:
+
 - Encrypted client-side before storage
 - Decrypted only at execution time
 - Never visible to the server in plaintext
@@ -96,12 +98,14 @@ At Trestle, we build software for human services organizations - case management
 - **Coordinated entry** - Regional housing systems with no integration options
 
 **The pain points:**
+
 - Workers spend hours copying data from our system into external portals
 - Portal logins are shared across teams (security nightmare)
 - Manual entry introduces transcription errors
 - No audit trail of what was submitted and when
 
 **What we needed:**
+
 - Declarative automation that non-developers can understand
 - Zero-knowledge credential storage (we never see client passwords)
 - AI-powered element detection (portals change layouts frequently)
@@ -208,7 +212,7 @@ const submitIntake = new Builder("submit-intake")
   .input("dateOfBirth", "string", true)
 
   .navigate("{{portalUrl}}")
-  .auth()  // Domain-based credential lookup
+  .auth() // Domain-based credential lookup
   .type("first name field", { variable: "firstName" })
   .type("last name field", { variable: "lastName" })
   .type("date of birth field", { variable: "dateOfBirth" })
@@ -234,20 +238,28 @@ await setupVault(masterPassword, ctx);
 
 // Save credentials (client-side encryption)
 const { vaultKey } = await unlockVault(masterPassword, vault);
-await saveCredential(vaultKey, {
-  label: "HMIS Portal",
-  domain: "portal.hmis.gov",
-  fields: [
-    { key: "username", value: "user@org.com", type: "username" },
-    { key: "password", value: "secret123", type: "password" },
-  ],
-}, ctx);
+await saveCredential(
+  vaultKey,
+  {
+    label: "HMIS Portal",
+    domain: "portal.hmis.gov",
+    fields: [
+      { key: "username", value: "user@org.com", type: "username" },
+      { key: "password", value: "secret123", type: "password" },
+    ],
+  },
+  ctx,
+);
 ```
 
 ## Execute a Blueprint
 
 ```typescript
-import { Executor, createStagehandAdapter, createVaultCredentialProvider } from "@trestleinc/crane/server";
+import {
+  Executor,
+  createStagehandAdapter,
+  createVaultCredentialProvider,
+} from "@trestleinc/crane/server";
 
 // Create browser adapter
 const adapter = await createStagehandAdapter({
@@ -257,14 +269,19 @@ const adapter = await createStagehandAdapter({
 
 try {
   const executor = new Executor(components.crane, adapter);
-  const result = await executor.run(ctx, "submit-intake", {
-    portalUrl: "https://portal.hmis.gov",
-    firstName: "John",
-    lastName: "Doe",
-    dateOfBirth: "1990-01-15",
-  }, {
-    credentials: createVaultCredentialProvider(ctx, orgId, vaultKey),
-  });
+  const result = await executor.run(
+    ctx,
+    "submit-intake",
+    {
+      portalUrl: "https://portal.hmis.gov",
+      firstName: "John",
+      lastName: "Doe",
+      dateOfBirth: "1990-01-15",
+    },
+    {
+      credentials: createVaultCredentialProvider(ctx, orgId, vaultKey),
+    },
+  );
 
   console.log("Confirmation:", result.outputs.confirmationNumber);
 } finally {
@@ -278,7 +295,11 @@ Register Crane as a Bridge callback for reactive automation:
 
 ```typescript
 import { bridgeClient } from "./bridge";
-import { Executor, createStagehandAdapter, createVaultCredentialProvider } from "@trestleinc/crane/server";
+import {
+  Executor,
+  createStagehandAdapter,
+  createVaultCredentialProvider,
+} from "@trestleinc/crane/server";
 
 // Register Crane as a Bridge callback
 bridgeClient.registerCallback("automation", async (ctx, deliverable, context) => {
@@ -289,14 +310,19 @@ bridgeClient.registerCallback("automation", async (ctx, deliverable, context) =>
 
   try {
     const executor = new Executor(components.crane, adapter);
-    const result = await executor.run(ctx, deliverable.callbackConfig.blueprintId, {
-      portalUrl: deliverable.callbackConfig.portalUrl,
-      firstName: context.variables.firstName,
-      lastName: context.variables.lastName,
-      dateOfBirth: context.variables.dateOfBirth,
-    }, {
-      credentials: createVaultCredentialProvider(ctx, orgId, vaultKey),
-    });
+    const result = await executor.run(
+      ctx,
+      deliverable.callbackConfig.blueprintId,
+      {
+        portalUrl: deliverable.callbackConfig.portalUrl,
+        firstName: context.variables.firstName,
+        lastName: context.variables.lastName,
+        dateOfBirth: context.variables.dateOfBirth,
+      },
+      {
+        credentials: createVaultCredentialProvider(ctx, orgId, vaultKey),
+      },
+    );
 
     return result;
   } finally {
@@ -329,17 +355,17 @@ flowchart LR
 
 ## Tile Types
 
-| Type | Parameters | Description |
-|------|------------|-------------|
-| `NAVIGATE` | `url` | Go to URL (supports `{{variable}}`) |
-| `CLICK` | `instruction` | Click element (natural language) |
-| `TYPE` | `instruction`, `value`/`variable`/`credentialId` | Type into field |
-| `EXTRACT` | `instruction`, `outputVariable`, `schema?` | Extract data |
-| `SCREENSHOT` | `fullPage?` | Capture screenshot |
-| `WAIT` | `ms` or `condition` | Wait for time/condition |
-| `SELECT` | `instruction`, `value` | Select dropdown option |
-| `AUTH` | *(domain-based)* | Login using stored credentials |
-| `FORM` | `fields[]` | Fill multiple fields |
+| Type         | Parameters                                       | Description                         |
+| ------------ | ------------------------------------------------ | ----------------------------------- |
+| `NAVIGATE`   | `url`                                            | Go to URL (supports `{{variable}}`) |
+| `CLICK`      | `instruction`                                    | Click element (natural language)    |
+| `TYPE`       | `instruction`, `value`/`variable`/`credentialId` | Type into field                     |
+| `EXTRACT`    | `instruction`, `outputVariable`, `schema?`       | Extract data                        |
+| `SCREENSHOT` | `fullPage?`                                      | Capture screenshot                  |
+| `WAIT`       | `ms` or `condition`                              | Wait for time/condition             |
+| `SELECT`     | `instruction`, `value`                           | Select dropdown option              |
+| `AUTH`       | _(domain-based)_                                 | Login using stored credentials      |
+| `FORM`       | `fields[]`                                       | Fill multiple fields                |
 
 ## Credential Vault Architecture
 
@@ -369,13 +395,13 @@ flowchart TB
 
 ### Security Model
 
-| Server Never Sees | Server Stores |
-|-------------------|---------------|
-| Master password | Encrypted vault key |
-| Master key (derived) | Encrypted machine key |
+| Server Never Sees     | Server Stores         |
+| --------------------- | --------------------- |
+| Master password       | Encrypted vault key   |
+| Master key (derived)  | Encrypted machine key |
 | Vault key (plaintext) | Encrypted credentials |
-| Credential plaintext | Salt, iterations |
-| | Verification hash |
+| Credential plaintext  | Salt, iterations      |
+|                       | Verification hash     |
 
 ### Encryption Details
 
@@ -409,6 +435,7 @@ sequenceDiagram
 ```
 
 **Benefits over CSS selectors:**
+
 - Natural language instructions ("click the submit button")
 - Resilient to UI changes
 - No maintenance when layouts change
@@ -466,6 +493,7 @@ interface BrowserAdapter {
 ```
 
 **Available adapters:**
+
 - `createStagehandAdapter()` - AI-powered (recommended)
 - `createPlaywrightAdapter()` - Direct Playwright control
 - Custom adapters for specialized needs
@@ -492,6 +520,7 @@ stateDiagram-v2
 ```
 
 Benefits:
+
 - Skip login on subsequent runs
 - Maintain session state
 - Reduce execution time
@@ -502,12 +531,12 @@ Benefits:
 
 Crane is part of a family of Convex components that work together:
 
-| Component | Purpose | Integration |
-|-----------|---------|-------------|
-| **[Bridge](/journal/bridge-reactive-data)** | Reactive data pipelines | Deliverables trigger blueprint execution |
-| **[TSP](/journal/tsp-data-contracts)** | Data contracts | Stack submissions executed via blueprints |
-| **[Taxonomy](/journal/taxonomy-data-governance)** | Data governance | Credential access respects clearance levels |
-| **[Replicate](/journal/replicate-local-first)** | Offline-first sync | Automation requires online vault access |
+| Component                                         | Purpose                 | Integration                                 |
+| ------------------------------------------------- | ----------------------- | ------------------------------------------- |
+| **[Bridge](/journal/bridge-reactive-data)**       | Reactive data pipelines | Deliverables trigger blueprint execution    |
+| **[TSP](/journal/tsp-data-contracts)**            | Data contracts          | Stack submissions executed via blueprints   |
+| **[Taxonomy](/journal/taxonomy-data-governance)** | Data governance         | Credential access respects clearance levels |
+| **[Replicate](/journal/replicate-local-first)**   | Offline-first sync      | Automation requires online vault access     |
 
 Each component is independently installable. Use one, some, or all - they compose cleanly because each runs in isolated tables.
 

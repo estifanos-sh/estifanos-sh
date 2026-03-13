@@ -20,15 +20,15 @@ Create well-formatted commit: $ARGUMENTS
 ## What This Command Does
 
 1. Unless specified with `--no-verify`, automatically runs pre-commit checks:
-   - `pnpm lint` to ensure code quality
-   - `pnpm build` to verify the build succeeds
-   - `pnpm generate:docs` to update documentation
+   - `vp lint` to ensure code quality
+   - `vp build` to verify the build succeeds
+   - `vp run generate:docs` to update documentation
 2. Checks which files are staged with `git status`
 3. If 0 files are staged, automatically adds all modified and new files with `git add`
 4. Performs a `git diff` to understand what changes are being committed
 5. Analyzes the diff to determine if multiple distinct logical changes are present
 6. If multiple distinct changes are detected, suggests breaking the commit into multiple smaller commits
-7. For each commit (or the single commit if not split), creates a commit message using  conventional commit format
+7. For each commit (or the single commit if not split), creates a commit message using conventional commit format
 
 ## Best Practices for Commits
 
@@ -60,6 +60,7 @@ When analyzing the diff, consider splitting commits based on these criteria:
 ## Examples
 
 Good commit messages:
+
 - Feat: add user authentication system
 - Fix: resolve memory leak in rendering process
 - Docs: update API documentation with new endpoints
@@ -78,6 +79,7 @@ Good commit messages:
 - Feat: improve form accessibility for screen readers
 
 Example of splitting commits:
+
 - First commit: feat: add new solc version type definitions
 - Second commit: docs: update documentation for new solc versions
 - Third commit: chore: update package.json dependencies
@@ -93,7 +95,7 @@ Example of splitting commits:
 
 ## Important Notes
 
-- By default, pre-commit checks (`pnpm lint`, `pnpm build`, `pnpm generate:docs`) will run to ensure code quality
+- By default, pre-commit checks (`vp lint`, `vp build`, `vp run generate:docs`) will run to ensure code quality
 - If these checks fail, you'll be asked if you want to proceed with the commit anyway or fix the issues first
 - If specific files are already staged, the command will only commit those files
 - If no files are staged, it will automatically stage all modified and new files

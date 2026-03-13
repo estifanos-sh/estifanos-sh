@@ -15,6 +15,7 @@ published: true
 This guide fills the gap between Convex's existing [Next.js WorkOS integration](https://docs.convex.dev/auth/workos) and [React/Vite guide](https://docs.convex.dev/auth/advanced/custom-auth), providing a production-ready pattern for TanStack Start applications.
 
 **Key challenges solved:**
+
 - Bridging WorkOS AuthKit tokens to Convex authentication
 - Avoiding infinite loops with proper React hook memoization
 - Handling organization switching without race conditions
@@ -82,13 +83,13 @@ sequenceDiagram
 
 # Tech Stack
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| TanStack Start | 1.x | Full-stack React framework |
-| TanStack React Query | 5.x | Data fetching & caching |
-| Convex | 1.x | Real-time backend |
-| WorkOS AuthKit | Latest | Authentication |
-| React | 19.x | UI framework |
+| Technology           | Version | Purpose                    |
+| -------------------- | ------- | -------------------------- |
+| TanStack Start       | 1.x     | Full-stack React framework |
+| TanStack React Query | 5.x     | Data fetching & caching    |
+| Convex               | 1.x     | Real-time backend          |
+| WorkOS AuthKit       | Latest  | Authentication             |
+| React                | 19.x    | UI framework               |
 
 # Prerequisites
 
@@ -131,16 +132,16 @@ const clientId = process.env.WORKOS_CLIENT_ID;
 export default {
   providers: [
     {
-      type: 'customJwt',
+      type: "customJwt",
       issuer: `https://api.workos.com/`,
-      algorithm: 'RS256',
+      algorithm: "RS256",
       applicationID: clientId,
       jwks: `https://api.workos.com/sso/jwks/${clientId}`,
     },
     {
-      type: 'customJwt',
+      type: "customJwt",
       issuer: `https://api.workos.com/user_management/${clientId}`,
-      algorithm: 'RS256',
+      algorithm: "RS256",
       jwks: `https://api.workos.com/sso/jwks/${clientId}`,
     },
   ],
@@ -154,8 +155,8 @@ Two providers are needed because WorkOS issues JWTs with different issuers depen
 Create `src/start.ts`:
 
 ```typescript
-import { createStart } from '@tanstack/react-start';
-import { authkitMiddleware } from '@workos/authkit-tanstack-react-start';
+import { createStart } from "@tanstack/react-start";
+import { authkitMiddleware } from "@workos/authkit-tanstack-react-start";
 
 export const startInstance = createStart(() => ({
   requestMiddleware: [authkitMiddleware()],
@@ -169,25 +170,25 @@ This middleware validates and refreshes sessions on every request.
 Create `src/routes/api/auth/callback.ts`:
 
 ```typescript
-import { createFileRoute } from '@tanstack/react-router';
-import { handleCallbackRoute } from '@workos/authkit-tanstack-react-start';
-import { ConvexHttpClient } from 'convex/browser';
-import { api } from '$convex/_generated/api';
+import { createFileRoute } from "@tanstack/react-router";
+import { handleCallbackRoute } from "@workos/authkit-tanstack-react-start";
+import { ConvexHttpClient } from "convex/browser";
+import { api } from "$convex/_generated/api";
 
 function getConvexUrl(): string {
   const url = import.meta.env.VITE_CONVEX_URL;
-  if (!url) throw new Error('VITE_CONVEX_URL environment variable is not configured');
+  if (!url) throw new Error("VITE_CONVEX_URL environment variable is not configured");
   return url;
 }
 
-export const Route = createFileRoute('/api/auth/callback')({
+export const Route = createFileRoute("/api/auth/callback")({
   server: {
     handlers: {
       GET: handleCallbackRoute({
         onSuccess: async ({ user }) => {
           // Sync user to Convex after successful auth
           const convex = new ConvexHttpClient(getConvexUrl());
-          const userName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email;
+          const userName = `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.email;
 
           await convex.mutation(api.auth.syncUserFromWorkOS, {
             workosUserId: user.id,
@@ -198,7 +199,7 @@ export const Route = createFileRoute('/api/auth/callback')({
         onError: () => {
           return new Response(null, {
             status: 302,
-            headers: { Location: '/sign-in?error=auth_failed' },
+            headers: { Location: "/sign-in?error=auth_failed" },
           });
         },
       }),
@@ -283,11 +284,11 @@ The `useAuthForConvex` hook bridges WorkOS tokens to Convex. **Critical:** The `
 In `src/lib/authClient.ts`:
 
 ```typescript
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from "react";
 import {
   useAuth as useAuthKitAuth,
   useAccessToken,
-} from '@workos/authkit-tanstack-react-start/client';
+} from "@workos/authkit-tanstack-react-start/client";
 
 export function useAuthForConvex() {
   const { user, loading } = useAuthKitAuth();
@@ -306,7 +307,7 @@ export function useAuthForConvex() {
         return null;
       }
     },
-    []
+    [],
   );
 
   return useMemo(
@@ -315,7 +316,7 @@ export function useAuthForConvex() {
       isAuthenticated: !!user,
       fetchAccessToken,
     }),
-    [loading, user, fetchAccessToken]
+    [loading, user, fetchAccessToken],
   );
 }
 ```
@@ -327,26 +328,23 @@ Call the WorkOS API from Convex actions to manage organizations.
 Create `convex/workos.ts`:
 
 ```typescript
-import { action, internalMutation } from './_generated/server';
-import { internal } from './_generated/api';
-import { v } from 'convex/values';
+import { action, internalMutation } from "./_generated/server";
+import { internal } from "./_generated/api";
+import { v } from "convex/values";
 
 const WORKOS_API_KEY = process.env.WORKOS_API_KEY;
-const WORKOS_BASE_URL = 'https://api.workos.com';
+const WORKOS_BASE_URL = "https://api.workos.com";
 
-async function workosApi<T = unknown>(
-  endpoint: string,
-  options: RequestInit = {}
-): Promise<T> {
+async function workosApi<T = unknown>(endpoint: string, options: RequestInit = {}): Promise<T> {
   if (!WORKOS_API_KEY) {
-    throw new Error('WORKOS_API_KEY not set');
+    throw new Error("WORKOS_API_KEY not set");
   }
 
   const res = await fetch(`${WORKOS_BASE_URL}${endpoint}`, {
     ...options,
     headers: {
       Authorization: `Bearer ${WORKOS_API_KEY}`,
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...options.headers,
     },
   });
@@ -366,21 +364,21 @@ export const listOrganizations = action({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return [];
 
-    const memberships = await workosApi<{ data: { organization_id: string; role?: { slug: string } }[] }>(
-      `/user_management/organization_memberships?user_id=${identity.subject}`
-    );
+    const memberships = await workosApi<{
+      data: { organization_id: string; role?: { slug: string } }[];
+    }>(`/user_management/organization_memberships?user_id=${identity.subject}`);
 
     return Promise.all(
       memberships.data.map(async (m) => {
         const org = await workosApi<{ id: string; name: string }>(
-          `/organizations/${m.organization_id}`
+          `/organizations/${m.organization_id}`,
         );
         return {
           id: org.id,
           name: org.name,
-          role: m.role?.slug || 'member',
+          role: m.role?.slug || "member",
         };
-      })
+      }),
     );
   },
 });
@@ -393,10 +391,10 @@ export const sendInvitation = action({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error('Unauthorized');
+    if (!identity) throw new Error("Unauthorized");
 
-    return workosApi('/user_management/invitations', {
-      method: 'POST',
+    return workosApi("/user_management/invitations", {
+      method: "POST",
       body: JSON.stringify({
         email: args.email,
         organization_id: args.organizationId,
@@ -411,15 +409,15 @@ export const sendInvitation = action({
 ## 7. Client Hooks
 
 ```typescript
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useConvex } from 'convex/react';
-import { api } from '$convex/_generated/api';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useConvex } from "convex/react";
+import { api } from "$convex/_generated/api";
 
 export function useOrganizations() {
   const convex = useConvex();
 
   return useQuery({
-    queryKey: ['organizations', 'list'],
+    queryKey: ["organizations", "list"],
     queryFn: () => convex.action(api.workos.listOrganizations, {}),
     staleTime: 1000 * 60 * 5,
   });
@@ -433,7 +431,7 @@ export function useSendInvitation() {
     mutationFn: (data: { email: string; organizationId: string; role: string }) =>
       convex.action(api.workos.sendInvitation, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['organizations', 'members'] });
+      queryClient.invalidateQueries({ queryKey: ["organizations", "members"] });
     },
   });
 }
@@ -477,12 +475,12 @@ function AuthenticatedLayout() {
 
 # Key Differences from Next.js
 
-| Aspect | Next.js | TanStack Start |
-|--------|---------|----------------|
-| Middleware | `middleware.ts` | `src/start.ts` |
-| Server functions | API routes | Convex HTTP Actions |
-| Session management | NextAuth | AuthKit middleware |
-| Auth provider | Direct Convex | `ConvexProviderWithAuth` wrapper |
+| Aspect             | Next.js         | TanStack Start                   |
+| ------------------ | --------------- | -------------------------------- |
+| Middleware         | `middleware.ts` | `src/start.ts`                   |
+| Server functions   | API routes      | Convex HTTP Actions              |
+| Session management | NextAuth        | AuthKit middleware               |
+| Auth provider      | Direct Convex   | `ConvexProviderWithAuth` wrapper |
 
 # Resources
 

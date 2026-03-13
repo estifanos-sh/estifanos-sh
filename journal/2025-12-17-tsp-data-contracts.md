@@ -7,7 +7,7 @@ tags:
   - components
   - integrations
 publishDate: 2025-12-17
-published: false 
+published: false
 ---
 
 # Abstract
@@ -93,12 +93,14 @@ At Trestle, we build software for human services organizations. These organizati
 Each of these external parties has their own data requirements, their own portal, and their own data format. A single client might need to be reported to five different systems - each requiring slightly different fields, different validation rules, and different submission schedules.
 
 **The pain points:**
+
 - Workers spend hours re-entering the same data in different portals
 - Each portal has different field names for the same concepts
 - Breaking changes in funder requirements break automations
 - No visibility into what data is required until submission fails
 
 **What we needed:**
+
 - Versioned schemas that funders can publish
 - Automatic mapping from internal data to external requirements
 - Validation before submission (not after rejection)
@@ -205,10 +207,35 @@ const { stackId, versionId } = await tsp.stacks.create(ctx, {
   type: "form",
   subject: { type: "client", operation: "create" },
   cards: [
-    { slug: "first_name", label: "First Name", type: "string", required: true, classification: "confidential" },
-    { slug: "last_name", label: "Last Name", type: "string", required: true, classification: "confidential" },
-    { slug: "ssn", label: "SSN", type: "string", format: "ssn", required: true, classification: "restricted" },
-    { slug: "dob", label: "Date of Birth", type: "date", required: true, classification: "confidential" },
+    {
+      slug: "first_name",
+      label: "First Name",
+      type: "string",
+      required: true,
+      classification: "confidential",
+    },
+    {
+      slug: "last_name",
+      label: "Last Name",
+      type: "string",
+      required: true,
+      classification: "confidential",
+    },
+    {
+      slug: "ssn",
+      label: "SSN",
+      type: "string",
+      format: "ssn",
+      required: true,
+      classification: "restricted",
+    },
+    {
+      slug: "dob",
+      label: "Date of Birth",
+      type: "date",
+      required: true,
+      classification: "confidential",
+    },
   ],
 });
 
@@ -311,17 +338,17 @@ flowchart LR
 
 ## Versioning Rules
 
-| Change Type | Impact | Version Bump |
-|-------------|--------|--------------|
-| Field removed | Breaking | MAJOR |
-| Field type changed | Breaking | MAJOR |
-| Field made required | Breaking | MAJOR |
-| New required field | Breaking | MAJOR |
-| New optional field | Non-breaking | MINOR |
-| Description changed | Non-breaking | PATCH |
-| Default value added | Non-breaking | PATCH |
-| Validation relaxed | Non-breaking | PATCH |
-| Validation tightened | Breaking | MAJOR |
+| Change Type          | Impact       | Version Bump |
+| -------------------- | ------------ | ------------ |
+| Field removed        | Breaking     | MAJOR        |
+| Field type changed   | Breaking     | MAJOR        |
+| Field made required  | Breaking     | MAJOR        |
+| New required field   | Breaking     | MAJOR        |
+| New optional field   | Non-breaking | MINOR        |
+| Description changed  | Non-breaking | PATCH        |
+| Default value added  | Non-breaking | PATCH        |
+| Validation relaxed   | Non-breaking | PATCH        |
+| Validation tightened | Breaking     | MAJOR        |
 
 ## Connection State Machine
 
@@ -409,15 +436,15 @@ Cards can have conditional requirements:
 
 ## Webhook Events
 
-| Event | Description |
-|-------|-------------|
-| `stack.published` | New version published |
-| `stack.deprecated` | Version deprecated |
-| `connection.requested` | Connection request |
-| `connection.accepted` | Connection accepted |
-| `connection.revoked` | Connection revoked |
-| `submission.accepted` | Submission validated |
-| `submission.rejected` | Validation failed |
+| Event                  | Description           |
+| ---------------------- | --------------------- |
+| `stack.published`      | New version published |
+| `stack.deprecated`     | Version deprecated    |
+| `connection.requested` | Connection request    |
+| `connection.accepted`  | Connection accepted   |
+| `connection.revoked`   | Connection revoked    |
+| `submission.accepted`  | Submission validated  |
+| `submission.rejected`  | Validation failed     |
 
 ### Webhook Security
 
@@ -431,7 +458,7 @@ Verification:
 
 ```typescript
 function verifySignature(payload: string, signature: string, secret: string): boolean {
-  const parts = Object.fromEntries(signature.split(",").map(p => p.split("=")));
+  const parts = Object.fromEntries(signature.split(",").map((p) => p.split("=")));
   const expected = hmacSha256(`${parts.t}.${payload}`, secret);
   return timingSafeEqual(parts.v1, expected);
 }
@@ -443,12 +470,12 @@ function verifySignature(payload: string, signature: string, secret: string): bo
 
 TSP is part of a family of Convex components that work together:
 
-| Component | Purpose | Integration |
-|-----------|---------|-------------|
-| **[Bridge](/journal/bridge-reactive-data)** | Reactive data pipelines | Card definitions map to Stack cards |
-| **[Crane](/journal/crane-browser-automation)** | Browser automation | Execute submissions via blueprints |
-| **[Taxonomy](/journal/taxonomy-data-governance)** | Data governance | Respects PII categories for export |
-| **[Replicate](/journal/replicate-local-first)** | Offline-first sync | Queue submissions until online |
+| Component                                         | Purpose                 | Integration                         |
+| ------------------------------------------------- | ----------------------- | ----------------------------------- |
+| **[Bridge](/journal/bridge-reactive-data)**       | Reactive data pipelines | Card definitions map to Stack cards |
+| **[Crane](/journal/crane-browser-automation)**    | Browser automation      | Execute submissions via blueprints  |
+| **[Taxonomy](/journal/taxonomy-data-governance)** | Data governance         | Respects PII categories for export  |
+| **[Replicate](/journal/replicate-local-first)**   | Offline-first sync      | Queue submissions until online      |
 
 Each component is independently installable. Use one, some, or all - they compose cleanly because each runs in isolated tables.
 

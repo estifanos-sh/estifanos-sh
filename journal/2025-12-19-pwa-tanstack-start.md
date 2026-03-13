@@ -14,6 +14,7 @@ published: true
 This guide solves the challenge of implementing PWA offline support in TanStack Start applications. Unlike static SPAs with a single `index.html`, TanStack Start uses Server-Side Rendering (SSR), which requires a custom approach to service worker generation.
 
 **Key challenges solved:**
+
 - Service worker generation in SSR frameworks
 - Caching server-rendered HTML for offline access
 - Runtime caching for API responses
@@ -47,22 +48,22 @@ flowchart TB
 
 ## Caching Strategy
 
-| Request Type | Strategy | Cache Name | Timeout |
-|-------------|----------|------------|---------|
-| Navigation | NetworkFirst | pages-cache | 3s |
-| API calls | NetworkFirst | api-cache | 3s |
-| Static assets | CacheFirst | static-assets | - |
-| Images | CacheFirst | images-cache | - |
+| Request Type  | Strategy     | Cache Name    | Timeout |
+| ------------- | ------------ | ------------- | ------- |
+| Navigation    | NetworkFirst | pages-cache   | 3s      |
+| API calls     | NetworkFirst | api-cache     | 3s      |
+| Static assets | CacheFirst   | static-assets | -       |
+| Images        | CacheFirst   | images-cache  | -       |
 
 # Tech Stack
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| TanStack Start | 1.x | Full-stack React framework |
-| vite-plugin-pwa | 1.x | Manifest generation |
-| workbox-build | 7.x | Service worker generation |
-| workbox-* | 7.x | Runtime caching strategies |
-| Bun | 1.x | TypeScript transpilation |
+| Technology      | Version | Purpose                    |
+| --------------- | ------- | -------------------------- |
+| TanStack Start  | 1.x     | Full-stack React framework |
+| vite-plugin-pwa | 1.x     | Manifest generation        |
+| workbox-build   | 7.x     | Service worker generation  |
+| workbox-\*      | 7.x     | Runtime caching strategies |
+| Bun             | 1.x     | TypeScript transpilation   |
 
 # Prerequisites
 
@@ -84,10 +85,10 @@ bun add -D workbox-build workbox-precaching workbox-routing workbox-strategies w
 Create `src/sw.ts` with Workbox caching strategies:
 
 ```typescript
-import { cleanupOutdatedCaches, precacheAndRoute } from 'workbox-precaching';
-import { registerRoute, NavigationRoute } from 'workbox-routing';
-import { NetworkFirst, CacheFirst } from 'workbox-strategies';
-import { ExpirationPlugin } from 'workbox-expiration';
+import { cleanupOutdatedCaches, precacheAndRoute } from "workbox-precaching";
+import { registerRoute, NavigationRoute } from "workbox-routing";
+import { NetworkFirst, CacheFirst } from "workbox-strategies";
+import { ExpirationPlugin } from "workbox-expiration";
 
 declare let self: ServiceWorkerGlobalScope;
 
@@ -100,7 +101,7 @@ cleanupOutdatedCaches();
 registerRoute(
   new NavigationRoute(
     new NetworkFirst({
-      cacheName: 'pages-cache',
+      cacheName: "pages-cache",
       networkTimeoutSeconds: 3,
       plugins: [
         new ExpirationPlugin({
@@ -108,16 +109,16 @@ registerRoute(
           maxAgeSeconds: 24 * 60 * 60, // 24 hours
         }),
       ],
-    })
-  )
+    }),
+  ),
 );
 
 // API requests: NetworkFirst with timeout
 // Replace with your API pattern (e.g., Convex)
 registerRoute(
-  ({ url }) => url.hostname.includes('.convex.cloud'),
+  ({ url }) => url.hostname.includes(".convex.cloud"),
   new NetworkFirst({
-    cacheName: 'api-cache',
+    cacheName: "api-cache",
     networkTimeoutSeconds: 3,
     plugins: [
       new ExpirationPlugin({
@@ -125,38 +126,38 @@ registerRoute(
         maxAgeSeconds: 24 * 60 * 60,
       }),
     ],
-  })
+  }),
 );
 
 // Static assets: CacheFirst for performance
 registerRoute(
   ({ request }) =>
-    request.destination === 'style' ||
-    request.destination === 'script' ||
-    request.destination === 'font',
+    request.destination === "style" ||
+    request.destination === "script" ||
+    request.destination === "font",
   new CacheFirst({
-    cacheName: 'static-assets',
+    cacheName: "static-assets",
     plugins: [
       new ExpirationPlugin({
         maxEntries: 100,
         maxAgeSeconds: 7 * 24 * 60 * 60, // 7 days
       }),
     ],
-  })
+  }),
 );
 
 // Images: CacheFirst
 registerRoute(
-  ({ request }) => request.destination === 'image',
+  ({ request }) => request.destination === "image",
   new CacheFirst({
-    cacheName: 'images-cache',
+    cacheName: "images-cache",
     plugins: [
       new ExpirationPlugin({
         maxEntries: 50,
         maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
       }),
     ],
-  })
+  }),
 );
 ```
 
@@ -165,60 +166,60 @@ registerRoute(
 Create `scripts/generate-sw.ts` to handle service worker generation after Vite build:
 
 ```typescript
-import { injectManifest } from 'workbox-build';
-import { resolve } from 'node:path';
-import { existsSync, unlinkSync, writeFileSync } from 'node:fs';
+import { injectManifest } from "workbox-build";
+import { resolve } from "node:path";
+import { existsSync, unlinkSync, writeFileSync } from "node:fs";
 
-const distClient = resolve(import.meta.dirname, '../dist/client');
-const srcSw = resolve(import.meta.dirname, '../src/sw.ts');
+const distClient = resolve(import.meta.dirname, "../dist/client");
+const srcSw = resolve(import.meta.dirname, "../src/sw.ts");
 
 async function generateServiceWorker() {
   if (!existsSync(distClient)) {
-    console.error('Error: dist/client does not exist. Run build first.');
+    console.error("Error: dist/client does not exist. Run build first.");
     process.exit(1);
   }
 
   // Use Bun to transpile TypeScript to JavaScript
-  console.log('Transpiling service worker...');
+  console.log("Transpiling service worker...");
   const transpiled = await Bun.build({
     entrypoints: [srcSw],
-    format: 'esm',
-    target: 'browser',
+    format: "esm",
+    target: "browser",
     minify: false,
   });
 
   if (!transpiled.success) {
-    console.error('Failed to transpile service worker:', transpiled.logs);
+    console.error("Failed to transpile service worker:", transpiled.logs);
     process.exit(1);
   }
 
   const swJsContent = await transpiled.outputs[0].text();
-  const tempSwPath = resolve(distClient, 'sw-src.js');
+  const tempSwPath = resolve(distClient, "sw-src.js");
   writeFileSync(tempSwPath, swJsContent);
 
-  console.log('Generating service worker with workbox...');
+  console.log("Generating service worker with workbox...");
 
   try {
     const { count, size, warnings } = await injectManifest({
       swSrc: tempSwPath,
-      swDest: resolve(distClient, 'sw.js'),
+      swDest: resolve(distClient, "sw.js"),
       globDirectory: distClient,
-      globPatterns: ['**/*.{js,css,ico,png,svg,woff2}'],
-      globIgnores: ['sw-src.js', 'sw.js'],
+      globPatterns: ["**/*.{js,css,ico,png,svg,woff2}"],
+      globIgnores: ["sw-src.js", "sw.js"],
       maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB
     });
 
     unlinkSync(tempSwPath);
 
     if (warnings.length > 0) {
-      console.warn('Warnings:', warnings.join('\n'));
+      console.warn("Warnings:", warnings.join("\n"));
     }
 
     console.log(
-      `✓ Service worker generated with ${count} files, totaling ${(size / 1024).toFixed(1)} KB`
+      `✓ Service worker generated with ${count} files, totaling ${(size / 1024).toFixed(1)} KB`,
     );
   } catch (error) {
-    console.error('Error generating service worker:', error);
+    console.error("Error generating service worker:", error);
     process.exit(1);
   }
 }
@@ -231,7 +232,7 @@ generateServiceWorker();
 Update `vite.config.ts` to use vite-plugin-pwa for manifest generation only:
 
 ```typescript
-import { VitePWA } from 'vite-plugin-pwa';
+import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
   plugins: [
@@ -240,33 +241,33 @@ export default defineConfig({
     // VitePWA only generates manifest.webmanifest
     // Service worker is generated post-build via scripts/generate-sw.ts
     VitePWA({
-      registerType: 'prompt',
+      registerType: "prompt",
       injectRegister: false, // Manual registration
-      includeAssets: ['favicon.ico', 'favicon.svg', 'robots.txt'],
+      includeAssets: ["favicon.ico", "favicon.svg", "robots.txt"],
       manifest: {
-        name: 'Your App Name',
-        short_name: 'App',
-        description: 'Your app description',
-        theme_color: '#000000',
-        background_color: '#ffffff',
-        display: 'standalone',
+        name: "Your App Name",
+        short_name: "App",
+        description: "Your app description",
+        theme_color: "#000000",
+        background_color: "#ffffff",
+        display: "standalone",
         icons: [
           {
-            src: 'logo192.png',
-            sizes: '192x192',
-            type: 'image/png',
+            src: "logo192.png",
+            sizes: "192x192",
+            type: "image/png",
           },
           {
-            src: 'logo512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'any maskable',
+            src: "logo512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "any maskable",
           },
         ],
       },
       devOptions: {
         enabled: false,
-        type: 'module',
+        type: "module",
         suppressWarnings: true,
       },
     }),
@@ -292,7 +293,7 @@ Update `package.json` to chain service worker generation:
 Create a component to handle service worker registration and updates. With vite-plugin-pwa, you can use the virtual module:
 
 ```tsx
-import { useRegisterSW } from 'virtual:pwa-register/react';
+import { useRegisterSW } from "virtual:pwa-register/react";
 
 export function ReloadPrompt() {
   const {
@@ -311,14 +312,10 @@ export function ReloadPrompt() {
   return (
     <div className="fixed bottom-4 right-4 z-50 flex items-center gap-3 px-4 py-3 bg-white shadow-lg rounded-lg">
       <span className="text-sm">
-        {offlineReady ? 'App ready to work offline' : 'New content available'}
+        {offlineReady ? "App ready to work offline" : "New content available"}
       </span>
       <div className="flex items-center gap-2">
-        {needRefresh && (
-          <button onClick={() => updateServiceWorker(true)}>
-            Reload
-          </button>
-        )}
+        {needRefresh && <button onClick={() => updateServiceWorker(true)}>Reload</button>}
         <button onClick={close}>Close</button>
       </div>
     </div>
@@ -333,6 +330,7 @@ Include this component in your root layout.
 ## The Problem
 
 TanStack Start uses SSR, which means:
+
 - No static `index.html` to fall back to
 - vite-plugin-pwa's `generateSW` doesn't work with TanStack Start's build process
 - The `closeBundle` hook that triggers SW generation isn't called properly
@@ -340,6 +338,7 @@ TanStack Start uses SSR, which means:
 ## The Solution
 
 Post-build service worker generation:
+
 1. vite-plugin-pwa generates only the manifest
 2. Custom script runs after Vite build
 3. Bun transpiles TypeScript service worker
@@ -385,6 +384,7 @@ bun run serve
 ```
 
 In Chrome DevTools:
+
 1. **Application > Service Workers** — Verify SW is active
 2. **Application > Cache Storage** — Verify caches exist
 3. **Network tab > Offline checkbox** — Enable offline mode
@@ -414,12 +414,12 @@ If using Biome, add an override for the scripts directory:
 
 # Key Differences from Vite SPA
 
-| Aspect | Vite SPA | TanStack Start |
-|--------|----------|----------------|
-| HTML | Static `index.html` | Server-rendered per request |
-| Fallback | `navigateFallback: '/index.html'` | Cache first navigation response |
-| SW Generation | vite-plugin-pwa `generateSW` | Post-build with workbox-build |
-| Offline data | Cache API only | Cache + IndexedDB (if local-first) |
+| Aspect        | Vite SPA                          | TanStack Start                     |
+| ------------- | --------------------------------- | ---------------------------------- |
+| HTML          | Static `index.html`               | Server-rendered per request        |
+| Fallback      | `navigateFallback: '/index.html'` | Cache first navigation response    |
+| SW Generation | vite-plugin-pwa `generateSW`      | Post-build with workbox-build      |
+| Offline data  | Cache API only                    | Cache + IndexedDB (if local-first) |
 
 # Resources
 

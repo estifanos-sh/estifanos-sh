@@ -4,6 +4,6 @@
  * @returns Formatted date string (e.g., "10-23-2025")
  */
 export function formatDate(dateString: string): string {
-	const [year, month, day] = dateString.split('-');
-	return `${month}-${day}-${year}`;
+  const [year, month, day] = dateString.split("-");
+  return `${month}-${day}-${year}`;
 }

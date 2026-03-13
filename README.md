@@ -12,22 +12,22 @@ Personal portfolio and journal site for Robel Estifanos. Built with SvelteKit 2,
 
 ## Prerequisites
 
-- [Bun](https://bun.sh) (package manager and runtime)
+- [Vite+](https://viteplus.dev) (`vp`) for package management, Node runtime orchestration, and frontend tooling
 - [Typst](https://typst.app) CLI (for PDF compilation during sync)
 - Convex account with dev and prod deployments configured
 
 ## Setup
 
 ```sh
-bun install
+vp install
 cp .env.example .env.local  # configure CONVEX_DEPLOYMENT and PUBLIC_CONVEX_URL
 ```
 
 ## Development
 
 ```sh
-bun run dev:convex  # start Convex dev backend (watches convex/ for changes)
-bun run dev         # start SvelteKit dev server
+vp run dev:convex  # start Convex dev backend (watches convex/ for changes)
+vp dev             # start SvelteKit dev server
 ```
 
 ## Deployment
@@ -35,24 +35,24 @@ bun run dev         # start SvelteKit dev server
 Full pipeline: sync journal content to Convex, build static site, upload to Convex storage.
 
 ```sh
-bun run deploy:dev  # sync + build + upload to dev
-bun run deploy      # sync + build + upload to production
+vp run deploy:dev  # sync + build + upload to dev
+vp run deploy      # sync + build + upload to production
 ```
 
 Individual steps if needed:
 
 ```sh
-bun run sync        # sync journal markdown + PDFs to Convex dev
-bun run sync:prod   # sync journal markdown + PDFs to Convex production
-bun run build       # build static site to build/
-bun run deploy:convex  # deploy Convex backend functions to production
+vp run sync            # sync journal markdown + PDFs to Convex dev
+vp run sync:prod       # sync journal markdown + PDFs to Convex production
+vp build               # build static site to build/
+vp run deploy:convex   # deploy Convex backend functions to production
 ```
 
 ## Project Structure
 
 ```
 src/           SvelteKit app (routes, components, styles)
-convex/        Convex backend (schema, queries, http handler, self-hosting)
+convex/        Convex backend (schema, queries, http handler, static hosting)
 journal/       Markdown source files for journal entries
 scripts/       Sync script (markdown -> Convex + Typst -> PDF)
 static/        Static assets (favicons, images)
