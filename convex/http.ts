@@ -48,8 +48,23 @@ const serveStaticFile = httpAction(async (ctx, request) => {
     }
   }
 
-  // 404
+  // 404 — serve custom error page if available
   if (!asset) {
+    const notFoundAsset = await getAsset("/404.html");
+    if (notFoundAsset?.storageId) {
+      const notFoundBlob = await ctx.storage.get(notFoundAsset.storageId);
+      if (notFoundBlob) {
+        return new Response(notFoundBlob, {
+          status: 404,
+          headers: {
+            "Content-Type": "text/html",
+            "Cache-Control": "public, max-age=0, must-revalidate",
+            "X-Content-Type-Options": "nosniff",
+          },
+        });
+      }
+    }
+
     return new Response("Not Found", {
       status: 404,
       headers: { "Content-Type": "text/plain" },

@@ -13,7 +13,7 @@
 	width={size}
 	height={size}
 	viewBox="0 0 32 32"
-	class="star-icon {animate ? 'star-icon-animate' : ''} {className}"
+	class="star-icon {animate ? 'animate-[spin_60s_linear_infinite]' : ''} {className}"
 	aria-hidden="true"
 >
 	<g stroke="currentColor" stroke-width="1.5" fill="none">
@@ -34,13 +34,3 @@
 	</g>
 </svg>
 
-<style>
-	@keyframes star-spin {
-		from { transform: rotate(0deg); }
-		to { transform: rotate(360deg); }
-	}
-
-	.star-icon-animate {
-		animation: star-spin 60s linear infinite;
-	}
-</style>

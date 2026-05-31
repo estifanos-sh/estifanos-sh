@@ -24,7 +24,7 @@
 
 {#if showBanner}
   <div class="fixed bottom-4 right-4 z-50 flex items-center gap-3 rounded border border-th-border bg-th-surface px-4 py-3 text-sm text-th-text shadow-lg">
-    <span style="font-family: var(--font-display)">A new version is available</span>
+    <span class="font-display">A new version is available</span>
     <button
       class="rounded bg-th-accent px-3 py-1 text-xs font-medium text-th-base transition-colors hover:bg-th-accent-hover"
       onclick={() => window.location.reload()}

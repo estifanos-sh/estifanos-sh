@@ -24,7 +24,7 @@
 	<!-- Header -->
 	<header class="w-full max-w-3xl mx-auto px-4 sm:px-6 pt-10 sm:pt-16 pb-6">
 		<nav class="flex items-center justify-between" aria-label="Main navigation">
-			<span class="text-lg sm:text-xl md:text-2xl text-th-text" style="font-family: var(--font-display);">
+			<span class="text-lg sm:text-xl md:text-2xl text-th-text font-display">
 				Robel Estifanos
 			</span>
 			<StarHeader />
@@ -35,7 +35,7 @@
 	<main class="flex-1 w-full max-w-3xl mx-auto px-4 sm:px-6">
 		<!-- About Section -->
 		<section class="mb-8 sm:mb-12">
-			<p class="text-sm sm:text-base leading-relaxed text-th-text" style="font-family: var(--font-display);">
+			<p class="text-sm sm:text-base leading-relaxed text-th-text font-display">
 				From enterprise infrastructure to building on the ground, I focus on environments where software quality and judgment actually matter. I now lead technical direction <a href="https://trestle.inc" target="_blank" rel="noopener noreferrer" class="hover:underline underline-offset-2">@Trestle</a>, building a system of record designed around the authentic workflows of frontline staff. As AI collapses the cost of automation, I've shifted my focus to the new frontier: reducing cognitive load and designing software that remains durable over time.
 			</p>
 		</section>
@@ -98,12 +98,7 @@
 			</h2>
 			<ul class="flex flex-wrap gap-x-4 sm:gap-x-6 gap-y-2 text-sm sm:text-base" role="list">
 				<li>
-					<a
-						href="/journal"
-						class="text-th-text hover:text-th-accent transition-colors"
-					>
-						Journal
-					</a>
+					<span class="text-th-muted">Journal</span>
 				</li>
 				<li>
 					<span class="text-th-muted">Lab</span>
@@ -115,10 +110,4 @@
 		</section>
 	</main>
 
-	<!-- Footer -->
-	<footer class="w-full max-w-3xl mx-auto px-4 sm:px-6 py-4 sm:py-6 border-t border-th-border mt-auto" aria-label="Site information">
-		<p class="text-xs sm:text-sm text-th-muted">
-			Manhattan, NY
-		</p>
-	</footer>
 </div>

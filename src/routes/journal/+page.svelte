@@ -6,6 +6,8 @@
 	import { useQuery } from 'convex-svelte';
 	import { api } from '../../../convex/_generated/api';
 	import { formatDate } from '$lib/utils/date';
+	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+	import TagChip from '$lib/components/TagChip.svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -95,7 +97,7 @@
 <div class="h-[100dvh] flex flex-col">
 	<!-- Header with tag filters -->
 	<header class="shrink-0 w-full max-w-3xl mx-auto px-4 sm:px-6 pt-10 sm:pt-16 pb-6">
-		<h1 class="text-2xl sm:text-3xl text-th-text mb-6" style="font-family: var(--font-display);">
+		<h1 class="text-2xl sm:text-3xl text-th-text mb-6 font-display">
 			Journal
 		</h1>
 
@@ -104,31 +106,19 @@
 			<div
 				bind:this={scrollContainer}
 				onscroll={updateScroll}
-				class="flex gap-2 overflow-x-auto scrollbar-hide"
+				class="flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
 			>
-				<button
-					class="tag-chip"
-					class:active={selectedTags.size === 0}
-					onclick={clearTags}
-				>
-					All
-				</button>
+				<TagChip active={selectedTags.size === 0} onclick={clearTags}>All</TagChip>
 				{#each allTags as tag (tag)}
-					<button
-						class="tag-chip"
-						class:active={selectedTags.has(tag)}
-						onclick={() => toggleTag(tag)}
-					>
-						{tag}
-					</button>
+					<TagChip active={selectedTags.has(tag)} onclick={() => toggleTag(tag)}>{tag}</TagChip>
 				{/each}
 			</div>
 
 			<!-- Scroll progress indicator -->
 			{#if showScrollIndicator}
-				<div class="scroll-track">
+				<div class="h-px bg-th-border mt-3 relative">
 					<div
-						class="scroll-thumb"
+						class="absolute h-0.5 w-[30%] bg-th-accent -top-px rounded-sm transition-[left] duration-100 ease-out"
 						style="left: {scrollProgress * 70}%"
 					></div>
 				</div>
@@ -139,10 +129,7 @@
 	<!-- Main content area -->
 	<main class="flex-1 min-h-0 flex flex-col w-full max-w-3xl mx-auto px-4 sm:px-6">
 		{#if journalQuery.isLoading}
-			<div class="flex items-center gap-3 text-th-muted" role="status">
-				<div class="w-4 h-4 border-2 border-th-muted border-t-transparent rounded-full animate-spin"></div>
-				<span class="text-sm">Loading...</span>
-			</div>
+			<LoadingSpinner />
 		{:else if filteredEntries && filteredEntries.length > 0}
 			<!-- Featured entry (most recent) -->
 			{#if featured}
@@ -151,14 +138,14 @@
 						<span class="text-[0.625rem] uppercase tracking-widest text-th-muted mb-3 block">
 							Latest
 						</span>
-						<h2 class="text-xl sm:text-2xl text-th-text group-hover:text-th-accent transition-colors mb-2" style="font-family: var(--font-display);">
+						<h2 class="text-xl sm:text-2xl text-th-text group-hover:text-th-accent transition-colors mb-2 font-display">
 							{featured.title}
 						</h2>
 						<time datetime={featured.publishDate} class="text-xs text-th-muted mb-4 block">
 							{formatDate(featured.publishDate)}
 						</time>
 						{#if featured.description}
-							<p class="text-sm text-th-subtle leading-relaxed max-w-xl" style="font-family: var(--font-display);">
+							<p class="text-sm text-th-subtle leading-relaxed max-w-xl font-display">
 								{featured.description}
 							</p>
 						{/if}
@@ -172,7 +159,7 @@
 					<h2 class="shrink-0 text-[0.625rem] uppercase tracking-widest text-th-muted mb-4">
 						Archive
 					</h2>
-					<div class="flex-1 min-h-0 overflow-y-auto scrollbar-hide pb-4">
+					<div class="flex-1 min-h-0 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden pb-4">
 						<ul class="space-y-0">
 							{#each remainingEntries as entry (entry.slug)}
 								<li>
@@ -187,7 +174,7 @@
 											>
 												{formatDate(entry.publishDate)}
 											</time>
-											<h3 class="text-sm text-th-text group-hover:text-th-accent transition-colors truncate" style="font-family: var(--font-display);">
+											<h3 class="text-sm text-th-text group-hover:text-th-accent transition-colors truncate font-display">
 												{entry.title}
 											</h3>
 										</div>
@@ -208,63 +195,5 @@
 		{/if}
 	</main>
 
-	<!-- Footer -->
-	<footer class="shrink-0 w-full max-w-3xl mx-auto px-4 sm:px-6 py-4 sm:py-6 border-t border-th-border" aria-label="Site information">
-		<p class="text-xs sm:text-sm text-th-muted">Manhattan, NY</p>
-	</footer>
 </div>
 
-<style>
-	.tag-chip {
-		padding: 0.25rem 0.625rem;
-		font-size: 0.625rem;
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
-		color: var(--color-th-muted);
-		border: 1px solid var(--color-th-border);
-		border-radius: 2px;
-		background: transparent;
-		cursor: pointer;
-		transition: all 0.15s ease;
-		white-space: nowrap;
-		flex-shrink: 0;
-	}
-
-	/* Hide scrollbar but keep functionality */
-	.scrollbar-hide {
-		-ms-overflow-style: none;
-		scrollbar-width: none;
-	}
-	.scrollbar-hide::-webkit-scrollbar {
-		display: none;
-	}
-
-	.tag-chip:hover {
-		border-color: var(--color-th-accent);
-		color: var(--color-th-accent);
-	}
-
-	.tag-chip.active {
-		background: var(--color-th-text);
-		color: var(--color-th-base);
-		border-color: var(--color-th-text);
-	}
-
-	/* Scroll progress indicator */
-	.scroll-track {
-		height: 1px;
-		background: var(--color-th-border);
-		margin-top: 0.75rem;
-		position: relative;
-	}
-
-	.scroll-thumb {
-		position: absolute;
-		height: 2px;
-		width: 30%;
-		background: var(--color-th-accent);
-		top: -0.5px;
-		transition: left 0.1s ease-out;
-		border-radius: 1px;
-	}
-</style>

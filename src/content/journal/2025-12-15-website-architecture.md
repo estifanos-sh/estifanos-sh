@@ -6,7 +6,7 @@ tags:
   - architecture
   - convex
 publishDate: 2025-12-15
-published: true
+published: false
 ---
 
 # Introduction

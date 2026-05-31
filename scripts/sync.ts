@@ -11,7 +11,7 @@ import pLimit from "p-limit";
 
 const execAsync = promisify(exec);
 
-const CONTENT_DIR = join(process.cwd(), "journal");
+const CONTENT_DIR = join(process.cwd(), "src", "content", "journal");
 const BUILD_DIR = join(process.cwd(), ".build");
 const TEMPLATES_DIR = join(CONTENT_DIR, "templates");
 const DIAGRAMS_DIR = join(BUILD_DIR, "diagrams");
