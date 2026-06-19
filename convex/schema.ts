@@ -1,25 +1,34 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
+export const cellValidator = v.object({
+  gx: v.number(),
+  gy: v.number(),
+  ht: v.number(),
+  hc: v.number(),
+  // Wall-clock ms when this cell was last touched by paint. The server tick's
+  // erosion (`del`) skips cells touched in the last 1500 ms so a freshly drawn
+  // stroke can't be eaten before the user sees it stick.
+  lastPaintedAt: v.optional(v.number()),
+});
+
 export default defineSchema({
-  journal: defineTable({
-    title: v.string(),
-    slug: v.string(),
-    description: v.optional(v.string()),
-    content: v.string(), // Markdown content
-    pdfStorageId: v.id("_storage"),
-    pdfUrl: v.string(),
-    publishDate: v.string(),
-    published: v.boolean(),
-    featured: v.optional(v.boolean()),
-    tags: v.optional(v.array(v.string())),
-    category: v.optional(v.string()),
-    pageCount: v.optional(v.number()),
-    fileSize: v.optional(v.number()),
-    contentHash: v.optional(v.string()),
-    lastSyncedAt: v.optional(v.string()),
-  })
-    .index("by_slug", ["slug"])
-    .index("by_published", ["published", "publishDate"])
-    .index("by_category", ["category", "publishDate"]),
+  worldState: defineTable({
+    key: v.literal("singleton"),
+    tickSeq: v.number(),
+    lastTickAt: v.number(),
+    coherence: v.number(),
+    cyclePhase: v.number(),
+    gAcc: v.number(),
+    dAcc: v.number(),
+    hAcc: v.number(),
+    cells: v.array(cellValidator),
+  }).index("by_key", ["key"]),
+
+  snapshots: defineTable({
+    t: v.number(),
+    tickSeq: v.number(),
+    coherence: v.number(),
+    cells: v.array(cellValidator),
+  }).index("by_t", ["t"]),
 });

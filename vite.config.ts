@@ -26,7 +26,6 @@ export default defineConfig({
           "src/**",
           "static/**",
           "convex/**",
-          "journal/**",
           "package.json",
           "pnpm-lock.yaml",
           "svelte.config.js",
@@ -44,7 +43,6 @@ export default defineConfig({
         input: [
           "src/**",
           "convex/**",
-          "scripts/**",
           "package.json",
           "pnpm-lock.yaml",
           "svelte.config.js",
@@ -61,7 +59,6 @@ export default defineConfig({
         input: [
           "src/**",
           "convex/**",
-          "scripts/**",
           "package.json",
           "pnpm-lock.yaml",
           "svelte.config.js",

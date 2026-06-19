@@ -8,16 +8,20 @@
  * @module
  */
 
+import type * as crons from "../crons.js";
 import type * as http from "../http.js";
-import type * as journal from "../journal.js";
 import type * as staticHosting from "../staticHosting.js";
+import type * as tick from "../tick.js";
+import type * as world from "../world.js";
 
 import type { ApiFromModules, FilterApi, FunctionReference } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  crons: typeof crons;
   http: typeof http;
-  journal: typeof journal;
   staticHosting: typeof staticHosting;
+  tick: typeof tick;
+  world: typeof world;
 }>;
 
 /**
@@ -41,72 +45,5 @@ export declare const api: FilterApi<typeof fullApi, FunctionReference<any, "publ
 export declare const internal: FilterApi<typeof fullApi, FunctionReference<any, "internal">>;
 
 export declare const components: {
-  selfHosting: {
-    lib: {
-      gcOldAssets: FunctionReference<
-        "mutation",
-        "internal",
-        { currentDeploymentId: string },
-        { blobIds: Array<string>; storageIds: Array<string> }
-      >;
-      generateUploadUrl: FunctionReference<"mutation", "internal", {}, string>;
-      getByPath: FunctionReference<
-        "query",
-        "internal",
-        { path: string },
-        {
-          _creationTime: number;
-          _id: string;
-          blobId?: string;
-          contentType: string;
-          deploymentId: string;
-          path: string;
-          storageId?: string;
-        } | null
-      >;
-      getCurrentDeployment: FunctionReference<
-        "query",
-        "internal",
-        {},
-        {
-          _creationTime: number;
-          _id: string;
-          currentDeploymentId: string;
-          deployedAt: number;
-        } | null
-      >;
-      listAssets: FunctionReference<
-        "query",
-        "internal",
-        { limit?: number },
-        Array<{
-          _creationTime: number;
-          _id: string;
-          blobId?: string;
-          contentType: string;
-          deploymentId: string;
-          path: string;
-          storageId?: string;
-        }>
-      >;
-      recordAsset: FunctionReference<
-        "mutation",
-        "internal",
-        {
-          blobId?: string;
-          contentType: string;
-          deploymentId: string;
-          path: string;
-          storageId?: string;
-        },
-        { oldBlobId: string | null; oldStorageId: string | null }
-      >;
-      setCurrentDeployment: FunctionReference<
-        "mutation",
-        "internal",
-        { deploymentId: string },
-        null
-      >;
-    };
-  };
+  selfHosting: import("@convex-dev/static-hosting/_generated/component.js").ComponentApi<"selfHosting">;
 };
