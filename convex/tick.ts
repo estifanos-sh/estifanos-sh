@@ -6,6 +6,7 @@ import { internal } from "./_generated/api";
 // Convex. One server tick = `TICK_MS` of demo-equivalent dt.
 
 const TICK_MS = 500;
+const TICK_LOOP_ENABLED = false;
 const MAXCOLS = 260;
 const SH = 13;
 const STAR_H = 2;
@@ -184,6 +185,8 @@ function ease(cols: Map<string, Cell>, now: number, alpha: number) {
 export const advance = internalMutation({
   args: {},
   handler: async (ctx) => {
+    if (!TICK_LOOP_ENABLED) return null;
+
     const world = await ctx.db
       .query("worldState")
       .withIndex("by_key", (q) => q.eq("key", "singleton"))
@@ -255,6 +258,8 @@ export const advance = internalMutation({
 export const bootstrap = internalMutation({
   args: {},
   handler: async (ctx) => {
+    if (!TICK_LOOP_ENABLED) return null;
+
     let world = await ctx.db
       .query("worldState")
       .withIndex("by_key", (q) => q.eq("key", "singleton"))
@@ -285,6 +290,8 @@ export const bootstrap = internalMutation({
 export const watchdog = internalMutation({
   args: {},
   handler: async (ctx) => {
+    if (!TICK_LOOP_ENABLED) return { restarted: false };
+
     const world = await ctx.db
       .query("worldState")
       .withIndex("by_key", (q) => q.eq("key", "singleton"))

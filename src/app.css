@@ -31,19 +31,15 @@
   html,
   body {
     width: 100vw;
-    height: 100vh;
     width: var(--app-vw, 100vw);
-    height: var(--app-vh, 100dvh);
+    min-height: 100vh;
+    min-height: var(--app-vh, 100dvh);
     margin: 0;
     background: var(--app-bg);
     color: var(--color-th-ink);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
-    /* The page never scrolls. We capture wheel + touch gestures ourselves and
-       drive virtual scroll state in JS, which feeds bio reveal + timeline. */
-    overflow: hidden;
-    touch-action: none;
-    overscroll-behavior: none;
+    overflow-x: hidden;
   }
 
   ::selection {

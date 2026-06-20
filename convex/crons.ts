@@ -1,9 +1,8 @@
 import { cronJobs } from "convex/server";
-import { internal } from "./_generated/api";
 
 const crons = cronJobs();
 
-// Restart the tick loop if it's been silent for >10s.
-crons.interval("tick watchdog", { seconds: 30 }, internal.tick.watchdog, {});
+// Kill switch: the live world tick loop was too expensive to keep running.
+// Leave this empty so production stops restarting the scheduled loop.
 
 export default crons;
