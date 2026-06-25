@@ -23,7 +23,7 @@ const serveStaticFile = httpAction(async (ctx, request) => {
     path = "/index.html";
   }
 
-  // Strip trailing slash (e.g., /journal/ → /journal) so resolution works
+  // Strip trailing slash (e.g., /convex-auth/ -> /convex-auth) so resolution works.
   if (path !== "/index.html" && path.endsWith("/")) {
     path = path.slice(0, -1);
   }

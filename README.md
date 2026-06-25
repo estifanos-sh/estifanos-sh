@@ -1,59 +1,45 @@
-# robelestifanos.com
+# estifanos.sh
 
-Personal portfolio and journal site for Robel Estifanos. Built with SvelteKit 2, Svelte 5, TypeScript, and Tailwind CSS v4. Statically generated at build time and hosted entirely on Convex.
+Source for [estifanos.com](https://estifanos.com) and
+[estifanos.sh](https://estifanos.sh).
 
-## Tech Stack
+- `estifanos.com` is the primary company landing page.
+- `estifanos.sh` is the project directory and serves project documentation at
+  `/convex-auth/` and `/convex-embedded/`.
 
-- **Framework**: SvelteKit 2 with `adapter-static` (SSG)
-- **UI**: Svelte 5 (runes), Tailwind CSS v4
-- **Backend**: Convex (database, file storage, hosting)
-- **Content**: Journal entries as markdown in `journal/`, compiled to PDFs via Typst, synced to Convex
-- **Reactivity**: `convex-svelte` for live client-side query subscriptions after hydration
+Both domains use the same TanStack Start and Solid application. Hostname-aware
+client routing selects the appropriate landing view. The interactive canvas is
+entirely local to the browser: it has no database, shared state, or history.
 
-## Prerequisites
+## Tooling
 
-- [Vite+](https://viteplus.dev) (`vp`) for package management, Node runtime orchestration, and frontend tooling
-- [Typst](https://typst.app) CLI (for PDF compilation during sync)
-- Convex account with dev and prod deployments configured
-
-## Setup
-
-```sh
-vp install
-cp .env.example .env.local  # configure CONVEX_DEPLOYMENT and PUBLIC_CONVEX_URL
-```
+- [TanStack Start](https://tanstack.com/start/latest/docs/framework/solid/overview)
+  with [Solid](https://www.solidjs.com/)
+- [Vite+](https://viteplus.dev/) and pnpm
+- [Convex static hosting](https://github.com/get-convex/static-hosting)
 
 ## Development
 
 ```sh
-vp run dev:convex  # start Convex dev backend (watches convex/ for changes)
-vp dev             # start SvelteKit dev server
+vp install
+vp dev
+```
+
+The documentation build artifacts are copied from the sibling
+`../convex-auth/docs/build` and `../convex-embedded/docs/build` directories.
+
+```sh
+vp run build
+vp run check
+vp run test
 ```
 
 ## Deployment
 
-Full pipeline: sync journal content to Convex, build static site, upload to Convex storage.
-
 ```sh
-vp run deploy:dev  # sync + build + upload to dev
-vp run deploy      # sync + build + upload to production
+vp run deploy
 ```
 
-Individual steps if needed:
-
-```sh
-vp run sync            # sync journal markdown + PDFs to Convex dev
-vp run sync:prod       # sync journal markdown + PDFs to Convex production
-vp build               # build static site to build/
-vp run deploy:convex   # deploy Convex backend functions to production
-```
-
-## Project Structure
-
-```
-src/           SvelteKit app (routes, components, styles)
-convex/        Convex backend (schema, queries, http handler, static hosting)
-journal/       Markdown source files for journal entries
-scripts/       Sync script (markdown -> Convex + Typst -> PDF)
-static/        Static assets (favicons, images)
-```
+This deploys the minimal Convex static-hosting backend, prerenders the Solid
+application, syncs both documentation sites, and uploads `dist/client` to the
+production deployment.

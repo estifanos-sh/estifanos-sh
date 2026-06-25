@@ -8,20 +8,14 @@
  * @module
  */
 
-import type * as crons from "../crons.js";
 import type * as http from "../http.js";
 import type * as staticHosting from "../staticHosting.js";
-import type * as tick from "../tick.js";
-import type * as world from "../world.js";
 
 import type { ApiFromModules, FilterApi, FunctionReference } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
-  crons: typeof crons;
   http: typeof http;
   staticHosting: typeof staticHosting;
-  tick: typeof tick;
-  world: typeof world;
 }>;
 
 /**

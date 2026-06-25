@@ -1,38 +1,35 @@
 {
-  "name": "robelest",
+  "name": "estifanos-sh",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vp dev",
     "dev:convex": "vp exec convex dev",
-    "build": "vp run cache:build",
+    "build": "vp run cache:build && node scripts/sync-project-docs.mjs",
     "preview": "vp preview",
     "check": "vp run cache:check",
     "lint": "vp lint",
     "fmt": "vp fmt",
     "test": "vp run cache:test",
-    "deploy": "vp exec convex deploy && vp build --mode production && vp exec static-hosting upload --dist ./build --component staticHosting --prod",
-    "deploy:dev": "vp exec convex dev --once && vp build --mode development && vp exec static-hosting upload --dist ./build --component staticHosting",
-    "deploy:convex": "vp exec convex deploy",
+    "sync:docs": "node scripts/sync-project-docs.mjs",
+    "deploy": "vp exec convex deploy --yes && vp run cache:build && node scripts/sync-project-docs.mjs && vp exec static-hosting upload --dist ./dist/client --component staticHosting --prod",
+    "deploy:dev": "vp exec convex dev --once && vp run cache:build && node scripts/sync-project-docs.mjs && vp exec static-hosting upload --dist ./dist/client --component staticHosting",
+    "deploy:convex": "vp exec convex deploy --yes",
     "prepare": "vp config"
   },
   "dependencies": {
     "@convex-dev/static-hosting": "^0.1.4",
+    "@tanstack/solid-router": "^1.170.16",
+    "@tanstack/solid-start": "^1.168.26",
     "convex": "^1.41.0",
-    "convex-svelte": "^0.14.0"
+    "solid-js": "^1.9.13"
   },
   "devDependencies": {
-    "@sveltejs/adapter-static": "^3.0.10",
-    "@sveltejs/kit": "^2.65.2",
-    "@sveltejs/vite-plugin-svelte": "^7.1.2",
-    "@tailwindcss/vite": "^4.3.1",
     "@types/node": "^25.9.3",
-    "svelte": "^5.56.3",
-    "svelte-check": "^4.6.0",
-    "tailwindcss": "^4.3.1",
     "typescript": "^6.0.3",
     "vite": "npm:@voidzero-dev/vite-plus-core@^0.2.0",
+    "vite-plugin-solid": "^2.11.12",
     "vite-plus": "latest"
   },
   "overrides": {
