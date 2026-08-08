@@ -5,7 +5,7 @@ Source for [estifanos.com](https://estifanos.com) and
 
 - `estifanos.com` is the primary company landing page.
 - `estifanos.sh` is the project directory and serves project documentation at
-  `/convex-auth/` and `/convex-embedded/`.
+  `/convex-auth/`.
 
 Both domains use the same TanStack Start and Solid application. Hostname-aware
 client routing selects the appropriate landing view. The interactive canvas is
@@ -26,7 +26,7 @@ vp dev
 ```
 
 The documentation build artifacts are copied from the sibling
-`../convex-auth/docs/build` and `../convex-embedded/docs/build` directories.
+`../convex-auth/docs/build` directory.
 
 ```sh
 vp run build

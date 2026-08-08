@@ -5,10 +5,7 @@ import { fileURLToPath } from "node:url";
 const root = dirname(fileURLToPath(import.meta.url));
 const output = join(root, "..", "dist", "client");
 
-const docs = [
-  ["convex-auth", join(root, "..", "..", "convex-auth", "docs", "build")],
-  ["convex-embedded", join(root, "..", "..", "convex-embedded", "docs", "build")],
-];
+const docs = [["convex-auth", join(root, "..", "..", "convex-auth", "docs", "build")]];
 
 for (const [name, source] of docs) {
   const destination = join(output, name);

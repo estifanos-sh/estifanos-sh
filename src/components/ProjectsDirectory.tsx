@@ -8,10 +8,6 @@ const projects = [
     name: "convex-auth",
     href: "/convex-auth/",
   },
-  {
-    name: "convex-embedded",
-    href: "/convex-embedded/",
-  },
 ] as const;
 
 export function ProjectsDirectory() {
