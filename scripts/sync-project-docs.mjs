@@ -1,11 +1,14 @@
 import { cp, mkdir, rm } from "node:fs/promises";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = dirname(fileURLToPath(import.meta.url));
 const output = join(root, "..", "dist", "client");
 
-const docs = [["convex-auth", join(root, "..", "..", "convex-auth", "docs", "build")]];
+const convexAuthDocs = process.env.CONVEX_AUTH_DOCS_DIR
+  ? resolve(process.env.CONVEX_AUTH_DOCS_DIR)
+  : join(root, "..", "..", "convex-auth", "docs", "dist", "client", "convex-auth");
+const docs = [["convex-auth", convexAuthDocs]];
 
 for (const [name, source] of docs) {
   const destination = join(output, name);

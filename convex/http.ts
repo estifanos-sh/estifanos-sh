@@ -17,6 +17,12 @@ const http = httpRouter();
 const serveStaticFile = httpAction(async (ctx, request) => {
   const url = new URL(request.url);
   let path = url.pathname;
+  const requestedDirectoryUrl = path.endsWith("/");
+
+  if (path === "/convex-auth/sso" || path.startsWith("/convex-auth/sso/")) {
+    url.pathname = path.replace("/convex-auth/sso", "/convex-auth/connection");
+    return Response.redirect(url, 301);
+  }
 
   // Normalize root
   if (path === "" || path === "/") {
@@ -42,6 +48,10 @@ const serveStaticFile = httpAction(async (ctx, request) => {
   if (!asset && !hasFileExtension(path)) {
     // Try /path/index.html
     asset = await getAsset(`${path}/index.html`);
+    if (asset && !requestedDirectoryUrl) {
+      url.pathname = `${path}/`;
+      return Response.redirect(url, 308);
+    }
     // Try /path.html
     if (!asset) {
       asset = await getAsset(`${path}.html`);
@@ -50,7 +60,11 @@ const serveStaticFile = httpAction(async (ctx, request) => {
 
   // 404 — serve custom error page if available
   if (!asset) {
-    const notFoundAsset = await getAsset("/404.html");
+    const notFoundPath =
+      path === "/convex-auth" || path.startsWith("/convex-auth/")
+        ? "/convex-auth/404.html"
+        : "/404.html";
+    const notFoundAsset = await getAsset(notFoundPath);
     if (notFoundAsset?.storageId) {
       const notFoundBlob = await ctx.storage.get(notFoundAsset.storageId);
       if (notFoundBlob) {
