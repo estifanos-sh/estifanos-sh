@@ -13,8 +13,6 @@ on:
       - "static/**"
       - "tsconfig.json"
       - "vite.config.ts"
-  repository_dispatch:
-    types: [convex-auth-docs]
   workflow_dispatch:
     inputs:
       convex_auth_sha:
@@ -43,9 +41,8 @@ jobs:
       - name: Resolve Convex Auth source
         id: auth
         env:
-          DISPATCH_SHA: ${{ github.event.client_payload.sha }}
           INPUT_SHA: ${{ inputs.convex_auth_sha }}
-        run: echo "sha=${DISPATCH_SHA:-${INPUT_SHA:-main}}" >> "$GITHUB_OUTPUT"
+        run: echo "sha=${INPUT_SHA:-main}" >> "$GITHUB_OUTPUT"
 
       - name: Set up Vite+
         uses: voidzero-dev/setup-vp@v1
