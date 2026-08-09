@@ -47,6 +47,7 @@ deployment owner. It checks out both repositories at explicit revisions,
 builds them, assembles one immutable static artifact, deploys the Convex HTTP
 backend, and uploads the artifact to static hosting.
 
-Pushes to this repository deploy automatically. Convex Auth documentation
-changes dispatch the same workflow with the exact documentation commit. `vp
-run deploy` remains available for deliberate local recovery deployments.
+Pushes to this repository deploy automatically. To publish Convex Auth
+documentation changes, run the same workflow with the exact documentation
+commit. `vp run deploy` remains available for deliberate local recovery
+deployments.
