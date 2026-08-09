@@ -47,14 +47,6 @@ jobs:
           INPUT_SHA: ${{ inputs.convex_auth_sha }}
         run: echo "sha=${DISPATCH_SHA:-${INPUT_SHA:-main}}" >> "$GITHUB_OUTPUT"
 
-      - name: Check out Convex Auth source
-        uses: actions/checkout@v7
-        with:
-          repository: estifanos-sh/convex-auth
-          ref: ${{ steps.auth.outputs.sha }}
-          path: .projects/convex-auth
-          persist-credentials: false
-
       - name: Set up Vite+
         uses: voidzero-dev/setup-vp@v1
         with:
@@ -63,6 +55,17 @@ jobs:
           run-install: |
             args: ['--frozen-lockfile']
 
+      - name: Check landing source
+        run: vp check
+
+      - name: Check out Convex Auth source
+        uses: actions/checkout@v7
+        with:
+          repository: estifanos-sh/convex-auth
+          ref: ${{ steps.auth.outputs.sha }}
+          path: .projects/convex-auth
+          persist-credentials: false
+
       - name: Install Convex Auth dependencies
         working-directory: .projects/convex-auth
         run: vp install --frozen-lockfile
@@ -70,9 +73,6 @@ jobs:
       - name: Build Convex Auth documentation
         working-directory: .projects/convex-auth
         run: vp run build:docs
-
-      - name: Check landing source
-        run: vp check
 
       - name: Deploy production artifact
         env:
