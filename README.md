@@ -25,21 +25,28 @@ vp install
 vp dev
 ```
 
-The documentation build artifacts are copied from the sibling
-`../convex-auth/docs/build` directory.
+Build the Convex Auth documentation before assembling the complete site:
 
 ```sh
+cd ../convex-auth
+vp run build:docs
+cd ../robelest
 vp run build
 vp run check
 vp run test
 ```
 
+`vp run build` assembles the generated documentation under `/convex-auth/` in
+the ignored `dist/client` deployment artifact. Set `CONVEX_AUTH_DOCS_DIR` to
+use a source outside the default sibling checkout.
+
 ## Deployment
 
-```sh
-vp run deploy
-```
+The **Production deployment** GitHub Actions workflow is the only production
+deployment owner. It checks out both repositories at explicit revisions,
+builds them, assembles one immutable static artifact, deploys the Convex HTTP
+backend, and uploads the artifact to static hosting.
 
-This deploys the minimal Convex static-hosting backend, prerenders the Solid
-application, syncs both documentation sites, and uploads `dist/client` to the
-production deployment.
+Pushes to this repository deploy automatically. Convex Auth documentation
+changes request the same workflow through a repository dispatch. `vp run
+deploy` remains available for deliberate local recovery deployments.

@@ -1,0 +1,92 @@
+name: Production deployment
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/deploy.yml"
+      - "convex/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "scripts/**"
+      - "src/**"
+      - "static/**"
+      - "tsconfig.json"
+      - "vite.config.ts"
+  repository_dispatch:
+    types: [convex-auth-docs]
+  workflow_dispatch:
+    inputs:
+      convex_auth_sha:
+        description: Convex Auth commit to include
+        required: true
+        default: main
+        type: string
+
+concurrency:
+  group: estifanos-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Build and deploy
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Check out landing source
+        uses: actions/checkout@v7
+
+      - name: Resolve Convex Auth source
+        id: auth
+        env:
+          DISPATCH_SHA: ${{ github.event.client_payload.sha }}
+          INPUT_SHA: ${{ inputs.convex_auth_sha }}
+        run: echo "sha=${DISPATCH_SHA:-${INPUT_SHA:-main}}" >> "$GITHUB_OUTPUT"
+
+      - name: Check out Convex Auth source
+        uses: actions/checkout@v7
+        with:
+          repository: estifanos-sh/convex-auth
+          ref: ${{ steps.auth.outputs.sha }}
+          path: .projects/convex-auth
+          persist-credentials: false
+
+      - name: Set up Vite+
+        uses: voidzero-dev/setup-vp@v1
+        with:
+          node-version: 24.15.0
+          cache: true
+          run-install: |
+            args: ['--frozen-lockfile']
+
+      - name: Install Convex Auth dependencies
+        working-directory: .projects/convex-auth
+        run: vp install --frozen-lockfile
+
+      - name: Build Convex Auth documentation
+        working-directory: .projects/convex-auth
+        run: vp run build:docs
+
+      - name: Check landing source
+        run: vp check
+
+      - name: Deploy production artifact
+        env:
+          CONVEX_AUTH_DOCS_DIR: ${{ github.workspace }}/.projects/convex-auth/docs/dist/client/convex-auth
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+        run: vp run deploy
+
+      - name: Record deployment inputs
+        run: |
+          {
+            echo "## Production deployment"
+            echo
+            echo "- Landing: \`${GITHUB_SHA}\`"
+            echo "- Convex Auth: \`${{ steps.auth.outputs.sha }}\`"
+            echo "- Site: https://estifanos.sh/"
+            echo "- Docs: https://estifanos.sh/convex-auth/"
+          } >> "$GITHUB_STEP_SUMMARY"

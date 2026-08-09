@@ -8,9 +8,9 @@ const output = join(root, "..", "dist", "client");
 const convexAuthDocs = process.env.CONVEX_AUTH_DOCS_DIR
   ? resolve(process.env.CONVEX_AUTH_DOCS_DIR)
   : join(root, "..", "..", "convex-auth", "docs", "dist", "client", "convex-auth");
-const docs = [["convex-auth", convexAuthDocs]];
+const projects = [["convex-auth", convexAuthDocs]];
 
-for (const [name, source] of docs) {
+for (const [name, source] of projects) {
   const destination = join(output, name);
   const nestedPagefind = join(source, "pagefind", "pagefind");
   await rm(destination, { force: true, recursive: true });
@@ -21,4 +21,4 @@ for (const [name, source] of docs) {
   });
 }
 
-console.log(`Synced ${docs.length} documentation sites into ${output}`);
+console.log(`Assembled ${projects.length} project site into ${output}`);
