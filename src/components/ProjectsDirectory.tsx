@@ -20,19 +20,20 @@ export function ProjectsDirectory() {
       <AccreteField showContent={false} />
       <div class="index-surface">
         <SiteHeader site="sh" />
-
-        <div class="index-list">
-          <ul>
-            <For each={projects}>
-              {(project) => (
-                <li>
-                  <a class="index-entry" href={project.href}>
-                    <h2>{project.name}</h2>
-                  </a>
-                </li>
-              )}
-            </For>
-          </ul>
+        <div class="index-body">
+          <nav class="index-list" aria-label="Project directory">
+            <ul>
+              <For each={projects}>
+                {(project) => (
+                  <li>
+                    <a class="index-entry" href={project.href}>
+                      {project.name}
+                    </a>
+                  </li>
+                )}
+              </For>
+            </ul>
+          </nav>
         </div>
       </div>
     </main>

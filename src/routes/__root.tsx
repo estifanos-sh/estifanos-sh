@@ -18,12 +18,7 @@ export const Route = createRootRoute({
     ],
     links: [
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg?v=accrete-square" },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "" },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Figtree:wght@400;500&family=Martian+Mono:wght@400;500&display=swap",
-      },
+      { rel: "preload", href: "/figtree.woff2", as: "font", type: "font/woff2", crossOrigin: "" },
     ],
   }),
   shellComponent: RootDocument,
@@ -34,9 +29,17 @@ function RootDocument(props: { children: JSX.Element }) {
     <html lang="en">
       <head>
         <HydrationScript />
+        <HeadContent />
+        <script
+          innerHTML={`(() => {
+            const projects = location.hostname === "estifanos.sh" || location.hostname === "www.estifanos.sh";
+            document.title = projects ? "estifanos.sh" : "estifanos.com";
+            const description = document.querySelector('meta[name="description"]');
+            if (description && projects) description.setAttribute("content", "Software projects from estifanos.sh.");
+          })();`}
+        />
       </head>
       <body>
-        <HeadContent />
         <Suspense>{props.children}</Suspense>
         <Scripts />
       </body>
