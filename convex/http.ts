@@ -19,6 +19,11 @@ const serveStaticFile = httpAction(async (ctx, request) => {
   let path = url.pathname;
   const requestedDirectoryUrl = path.endsWith("/");
 
+  if (path === "/convex-auth" || path === "/convex-auth/") {
+    url.pathname = "/convex-auth/getting-started/installation/";
+    return Response.redirect(url, 308);
+  }
+
   if (path === "/convex-auth/sso" || path.startsWith("/convex-auth/sso/")) {
     url.pathname = path.replace("/convex-auth/sso", "/convex-auth/connection");
     return Response.redirect(url, 301);
