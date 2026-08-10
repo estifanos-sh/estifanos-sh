@@ -21,7 +21,7 @@
   --layout-width: calc(100vw - var(--layout-gutter) * 2);
   --content-offset: calc(var(--grid-size) * 4);
   --content-width: min(46ch, calc(var(--grid-size) * 18));
-  --directory-width: calc(var(--grid-size) * 8);
+  --directory-width: calc(var(--grid-size) * 10);
   background: var(--bg);
 }
 
@@ -261,7 +261,7 @@ select {
   display: inline;
   padding: 0;
   color: var(--ink);
-  font-size: 1.5rem;
+  font-size: 1.35rem;
   font-weight: 500;
   line-height: 1.25;
   pointer-events: auto;
