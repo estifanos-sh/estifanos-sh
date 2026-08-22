@@ -14,15 +14,15 @@
     "fmt": "vp fmt",
     "test": "vp run cache:test",
     "assemble": "node scripts/docs.mjs assemble",
-    "deploy": "vp run build && vp exec convex deploy --yes && vp exec static-hosting upload --dist ./dist/client --component staticHosting --prod",
-    "deploy:release": "vp run build:release && vp exec convex deploy --yes && vp exec static-hosting upload --dist ./dist/client --component staticHosting --prod",
-    "deploy:dev": "vp exec convex dev --once && vp run build && vp exec static-hosting upload --dist ./dist/client --component staticHosting",
+    "deploy": "vp run build && vp exec convex deploy --yes && vp exec static-hosting upload --dist ./dist/client --component selfHosting --no-spa --prod",
+    "deploy:release": "vp run build:release && vp exec convex deploy --yes && vp exec static-hosting upload --dist ./dist/client --component selfHosting --no-spa --prod",
+    "deploy:dev": "vp exec convex dev --once && vp run build && vp exec static-hosting upload --dist ./dist/client --component selfHosting --no-spa",
     "deploy:convex": "vp exec convex deploy --yes",
     "prepare": "vp config"
   },
   "dependencies": {
-    "@convex-dev/static-hosting": "^0.1.4",
-    "convex": "^1.41.0"
+    "@convex-dev/static-hosting": "^0.2.1",
+    "convex": "^1.45.0"
   },
   "devDependencies": {
     "@types/node": "^25.9.3",

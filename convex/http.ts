@@ -1,157 +1,133 @@
 import { httpRouter } from "convex/server";
-import { getMimeType } from "@convex-dev/static-hosting";
 import { components } from "./_generated/api";
-import { httpAction } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
+import { httpAction, type ActionCtx } from "./_generated/server";
+import { cacheControlFor, contentTypeFor, resolveStaticRequest } from "./serving";
 
 const http = httpRouter();
 
-/**
- * Custom static file handler with directory URL resolution.
- *
- * Tries in order:
- *   1. Exact path match
- *   2. /path/index.html (directory index)
- *   3. /path.html (flat file)
- *   4. 404
- */
+interface HostedAsset {
+  appStorageId?: string;
+  blobId?: string;
+  contentType?: string;
+  etag?: string;
+  storageUrl?: string;
+}
+
 const serveStaticFile = httpAction(async (ctx, request) => {
-  const url = new URL(request.url);
-  let path = url.pathname;
-  const requestedDirectoryUrl = path.endsWith("/");
+  const resolution = resolveStaticRequest(request.url, request.headers.get("host"));
 
-  if (path === "/convex-auth/sso" || path.startsWith("/convex-auth/sso/")) {
-    url.pathname = path.replace("/convex-auth/sso", "/convex-auth/connection");
-    return Response.redirect(url, 301);
-  }
-
-  // The two landing documents are static and contain no hostname-switching
-  // client code. Select the engineering landing page at the HTTP boundary.
-  if (path === "" || path === "/") {
-    path = isEngineeringHost(request.headers.get("host"))
-      ? "/landing/sh/index.html"
-      : "/index.html";
-  }
-
-  // Strip trailing slash (e.g., /convex-auth/ -> /convex-auth) so resolution works.
-  if (path !== "/index.html" && path.endsWith("/")) {
-    path = path.slice(0, -1);
-  }
-
-  // Helper to look up an asset from the static hosting component
-  const getAsset = async (assetPath: string) => {
-    return await ctx.runQuery(components.selfHosting.lib.getByPath, {
-      path: assetPath,
+  if (resolution.kind === "bad-request") {
+    return new Response("Bad Request", {
+      status: 400,
+      headers: { "Content-Type": "text/plain; charset=utf-8" },
     });
-  };
-
-  // Try resolution chain
-  let asset = await getAsset(path);
-
-  // If no exact match and path has no file extension, try directory patterns
-  if (!asset && !hasFileExtension(path)) {
-    // Try /path/index.html
-    asset = await getAsset(`${path}/index.html`);
-    if (asset && !requestedDirectoryUrl) {
-      url.pathname = `${path}/`;
-      return Response.redirect(url, 308);
-    }
-    // Try /path.html
-    if (!asset) {
-      asset = await getAsset(`${path}.html`);
-    }
   }
 
-  // 404 — serve custom error page if available
-  if (!asset) {
-    const project = ["convex-auth", "convex-embedded"].find(
-      (id) => path === `/${id}` || path.startsWith(`/${id}/`),
-    );
-    const notFoundPath = project ? `/${project}/404.html` : "/404.html";
-    const notFoundAsset = await getAsset(notFoundPath);
-    if (notFoundAsset?.storageId) {
-      const notFoundBlob = await ctx.storage.get(notFoundAsset.storageId);
-      if (notFoundBlob) {
-        return new Response(notFoundBlob, {
-          status: 404,
-          headers: {
-            "Content-Type": "text/html",
-            "Cache-Control": "public, max-age=0, must-revalidate",
-            "X-Content-Type-Options": "nosniff",
-          },
-        });
-      }
-    }
+  if (resolution.kind === "redirect") {
+    return Response.redirect(resolution.location, resolution.status);
+  }
 
+  const asset = (await ctx.runQuery(components.selfHosting.lib.resolveAssetForHttp, {
+    path: resolution.path,
+    spaFallback: false,
+  })) as HostedAsset | null;
+
+  if (asset) {
+    return await assetResponse(ctx, request, resolution.path, asset, {
+      varyHost: resolution.varyHost,
+    });
+  }
+
+  const project = ["convex-auth", "convex-embedded"].find(
+    (id) => resolution.path === `/${id}/index.html` || resolution.path.startsWith(`/${id}/`),
+  );
+  const notFoundPath = project ? `/${project}/404.html` : "/404.html";
+  const notFoundAsset = (await ctx.runQuery(components.selfHosting.lib.resolveAssetForHttp, {
+    path: notFoundPath,
+    spaFallback: false,
+  })) as HostedAsset | null;
+
+  if (!notFoundAsset) {
     return new Response("Not Found", {
       status: 404,
-      headers: { "Content-Type": "text/plain" },
+      headers: { "Content-Type": "text/plain; charset=utf-8" },
     });
   }
 
-  // ETag / conditional request
-  const etag = `"${asset.storageId}"`;
-  const ifNoneMatch = request.headers.get("If-None-Match");
-  if (ifNoneMatch === etag) {
+  return await assetResponse(ctx, request, notFoundPath, notFoundAsset, {
+    status: 404,
+  });
+});
+
+async function assetResponse(
+  ctx: ActionCtx,
+  request: Request,
+  path: string,
+  asset: HostedAsset,
+  options: { status?: number; varyHost?: boolean } = {},
+): Promise<Response> {
+  const cacheControl = cacheControlFor(path);
+  const contentType = asset.contentType || contentTypeFor(path);
+  const headers = {
+    "Cache-Control": cacheControl,
+    "Content-Type": contentType,
+    ...(asset.etag ? { ETag: asset.etag } : {}),
+    ...(options.varyHost ? { Vary: "Host" } : {}),
+    "X-Content-Type-Options": "nosniff",
+  };
+
+  if (asset.etag && etagMatches(request.headers.get("If-None-Match"), asset.etag)) {
+    return new Response(null, { status: 304, headers });
+  }
+
+  if (asset.appStorageId) {
+    const blob = await ctx.storage.get(asset.appStorageId as Id<"_storage">);
+    if (!blob) return storageError();
+    return new Response(blob, { status: options.status ?? 200, headers });
+  }
+
+  // This deployment does not use legacy --cdn uploads. Preserve the redirect
+  // branch for inherited manifests so migration never turns a valid asset into
+  // a storage error.
+  if (asset.blobId && !contentType.startsWith("text/html")) {
+    const url = new URL(request.url);
     return new Response(null, {
-      status: 304,
+      status: 302,
       headers: {
-        ETag: etag,
-        "Cache-Control": isHashedAsset(path)
-          ? "public, max-age=31536000, immutable"
-          : "public, max-age=0, must-revalidate",
+        "Cache-Control": cacheControl,
+        Location: `${url.origin}/fs/blobs/${asset.blobId}`,
       },
     });
   }
 
-  // Serve from Convex storage
-  if (!asset.storageId) {
-    return new Response("Storage error", {
-      status: 500,
-      headers: { "Content-Type": "text/plain" },
-    });
-  }
-  const blob = await ctx.storage.get(asset.storageId);
-  if (!blob) {
-    return new Response("Storage error", {
-      status: 500,
-      headers: { "Content-Type": "text/plain" },
-    });
-  }
+  if (!asset.storageUrl) return storageError();
+  const storageResponse = await fetch(asset.storageUrl);
+  if (!storageResponse.ok || !storageResponse.body) return storageError();
 
-  const cacheControl = isHashedAsset(path)
-    ? "public, max-age=31536000, immutable"
-    : "public, max-age=0, must-revalidate";
-
-  return new Response(blob, {
-    status: 200,
-    headers: {
-      "Content-Type": asset.contentType || getMimeType(path),
-      "Cache-Control": cacheControl,
-      ETag: etag,
-      "X-Content-Type-Options": "nosniff",
-    },
+  return new Response(storageResponse.body, {
+    status: options.status ?? 200,
+    headers,
   });
-});
-
-function hasFileExtension(path: string): boolean {
-  const lastSegment = path.split("/").pop() || "";
-  return lastSegment.includes(".") && !lastSegment.startsWith(".");
 }
 
-function isHashedAsset(path: string): boolean {
-  return /[-.][\dA-Za-z_]{6,12}\.[a-z]+$/.test(path);
+function etagMatches(candidateHeader: string | null, currentEtag: string): boolean {
+  if (!candidateHeader) return false;
+  const normalize = (value: string) => value.trim().replace(/^W\//, "").trim();
+  const normalizedCurrent = normalize(currentEtag);
+  return candidateHeader.split(",").some((candidate) => {
+    const normalized = normalize(candidate);
+    return normalized === "*" || normalized === normalizedCurrent;
+  });
 }
 
-function isEngineeringHost(host: string | null): boolean {
-  const hostname = host?.split(":", 1)[0]?.toLowerCase();
-  return (
-    hostname === "estifanos.sh" ||
-    hostname === "www.estifanos.sh" ||
-    hostname === "estifanos.sh.localhost"
-  );
+function storageError(): Response {
+  return new Response("Storage error", {
+    status: 500,
+    headers: { "Content-Type": "text/plain; charset=utf-8" },
+  });
 }
 
-// Catch-all route for all GET requests
 http.route({
   pathPrefix: "/",
   method: "GET",

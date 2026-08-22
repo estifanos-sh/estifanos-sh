@@ -3,6 +3,7 @@ import "../app.css";
 import interFont from "../assets/fonts/inter.woff2";
 import interTightFont from "../assets/fonts/intertight.woff2";
 import { project } from "../generated/project";
+import { ClientRouter } from "astro:transitions";
 
 interface DocumentationPage {
   description: string;
@@ -58,22 +59,17 @@ function href(slug: string) {
     <meta content={page.description} name="description" />
     <meta content="#f7eedb" name="theme-color" />
     <link href={`${base}favicon.svg?v=estifanos-engineering-1`} rel="icon" type="image/svg+xml" />
-    <link href="https://use.typekit.net" rel="preconnect" />
-    <link href="https://p.typekit.net" rel="preconnect" />
-    <link href="https://fonts.googleapis.com" rel="preconnect" />
-    <link crossorigin="anonymous" href="https://fonts.gstatic.com" rel="preconnect" />
-    <link href="https://use.typekit.net/xmd6bow.css" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..800&family=Geist+Mono:wght@400..700&display=swap" rel="stylesheet" />
     <link as="font" crossorigin="anonymous" href={interFont} rel="preload" type="font/woff2" />
     <link as="font" crossorigin="anonymous" href={interTightFont} rel="preload" type="font/woff2" />
     <link href={href(page.slug)} rel="canonical" />
     <title>{page.title} | {docsProject.title}</title>
+    <ClientRouter fallback="swap" />
   </head>
   <body data-base={base}>
     <div class="chrome chrome-docs">
       <a class="skip-link" href="#main-content">Skip to content</a>
       <header class="masthead">
-        <a class="brand-lockup" href={base}>
+        <a class="brand-lockup" data-astro-prefetch="tap" href={base}>
           <img alt="Convex" class="brand-wordmark" height="36" src={`${base}brand/convex-logo-white.svg`} width="92" />
         </a>
         <div class="masthead-actions">
@@ -107,7 +103,7 @@ function href(slug: string) {
           <nav aria-label="Documentation">
             {docsProject.sidebar.map((group) => <details class="rail-group" open={group.items.some((item) => item.slug === current)}>
               <summary>{group.label}</summary>
-              <ul>{group.items.map((item) => <li><a aria-current={item.slug === current ? "page" : undefined} class:list={{ active: item.slug === current }} href={href(item.slug)}>{item.title}</a></li>)}</ul>
+              <ul>{group.items.map((item) => <li><a aria-current={item.slug === current ? "page" : undefined} class:list={{ active: item.slug === current }} data-astro-prefetch="tap" href={href(item.slug)}>{item.title}</a></li>)}</ul>
             </details>)}
           </nav>
         </aside>
@@ -120,20 +116,20 @@ function href(slug: string) {
             </header>
             <article class="doc-prose" data-pagefind-body set:html={page.html} tabindex="-1"></article>
             <nav aria-label="Adjacent documentation pages" class="pager">
-              {previous && <a class="pager-link" href={href(previous.slug)}><span>Previous</span><strong>{previous.title}</strong></a>}
-              {next && <a class:list={{ "pager-link": true, "pager-next": true }} href={href(next.slug)}><span>Next</span><strong>{next.title}</strong></a>}
+              {previous && <a class="pager-link" data-astro-prefetch="tap" href={href(previous.slug)}><span>Previous</span><strong>{previous.title}</strong></a>}
+              {next && <a class:list={{ "pager-link": true, "pager-next": true }} data-astro-prefetch="tap" href={href(next.slug)}><span>Next</span><strong>{next.title}</strong></a>}
             </nav>
           </div></div>
         </main>
         <footer class="site-foot"><div class="site-foot-inner">
           <div class="site-foot-primary"><p class="site-foot-built">Built with <span aria-label="love">♥</span> by <a href="https://estifanos.com">estifanos.com</a></p></div>
-          <nav aria-label="Footer" class="site-foot-links"><a href={base}>Overview</a><a href={`https://github.com/${docsProject.repository}`}>GitHub</a></nav>
+          <nav aria-label="Footer" class="site-foot-links"><a data-astro-prefetch="tap" href={base}>Overview</a><a href={`https://github.com/${docsProject.repository}`}>GitHub</a></nav>
         </div></footer>
       </div>
       <div class="overlay" data-menu hidden>
         <button aria-label="Close navigation" class="scrim" data-menu-close></button>
         <nav class="drawer" id="mobile-docs-nav"><div class="drawer-head"><strong>Documentation</strong><button aria-label="Close navigation" class="drawer-close" data-menu-close type="button">×</button></div>
-          {docsProject.sidebar.map((group) => <details class="rail-group" open={group.items.some((item) => item.slug === current)}><summary>{group.label}</summary><ul>{group.items.map((item) => <li><a class:list={{ active: item.slug === current }} href={href(item.slug)}>{item.title}</a></li>)}</ul></details>)}
+          {docsProject.sidebar.map((group) => <details class="rail-group" open={group.items.some((item) => item.slug === current)}><summary>{group.label}</summary><ul>{group.items.map((item) => <li><a class:list={{ active: item.slug === current }} data-astro-prefetch="tap" href={href(item.slug)}>{item.title}</a></li>)}</ul></details>)}
         </nav>
       </div>
       <div class="overlay search-overlay" data-search hidden>
@@ -144,27 +140,6 @@ function href(slug: string) {
         </section>
       </div>
     </div>
-    <script is:inline>
-      const base = document.body.dataset.base || "/";
-      const menu = document.querySelector("[data-menu]");
-      const search = document.querySelector("[data-search]");
-      const input = document.querySelector("[data-search-input]");
-      const hits = document.querySelector("[data-search-hits]");
-      const empty = document.querySelector("[data-search-empty]");
-      let pagefind;
-      const closeMenu = () => { menu.hidden = true; document.querySelector("[data-menu-open]").setAttribute("aria-expanded", "false"); };
-      const closeSearch = () => { search.hidden = true; input.value = ""; hits.replaceChildren(); empty.hidden = false; empty.textContent = "Search guides and API reference."; };
-      document.querySelector("[data-menu-open]").addEventListener("click", () => { menu.hidden = false; document.querySelector("[data-menu-open]").setAttribute("aria-expanded", "true"); });
-      document.querySelectorAll("[data-menu-close]").forEach((button) => button.addEventListener("click", closeMenu));
-      document.querySelector("[data-search-open]").addEventListener("click", () => { search.hidden = false; input.focus(); });
-      document.querySelectorAll("[data-search-close]").forEach((button) => button.addEventListener("click", closeSearch));
-      document.addEventListener("keydown", (event) => { if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") { event.preventDefault(); if (search.hidden) document.querySelector("[data-search-open]").click(); else closeSearch(); } if (event.key === "Escape") { closeMenu(); closeSearch(); } });
-      document.querySelectorAll("pre").forEach((pre) => { if (pre.parentElement.classList.contains("code-block")) return; const wrap = document.createElement("div"); wrap.className = "code-block"; pre.replaceWith(wrap); wrap.append(pre); const button = document.createElement("button"); button.className = "code-copy"; button.type = "button"; button.textContent = "Copy"; button.addEventListener("click", async () => { await navigator.clipboard.writeText(pre.textContent || ""); button.textContent = "Copied"; setTimeout(() => button.textContent = "Copy", 1600); }); wrap.append(button); });
-      document.querySelector("[data-copy-install]")?.addEventListener("click", async (event) => { const button = event.currentTarget; await navigator.clipboard.writeText(button.dataset.install); button.querySelector("[data-copy-label]").textContent = "Copied"; setTimeout(() => button.querySelector("[data-copy-label]").textContent = "Copy", 1600); });
-      let pagefindPromise;
-      const loadPagefind = () => pagefindPromise ??= import(`${base}pagefind/pagefind.js`).then(async (module) => { await module.init(); return module; });
-      document.querySelector("[data-search-open]").addEventListener("click", () => { void loadPagefind(); });
-      input.addEventListener("input", async () => { const query = input.value.trim(); hits.replaceChildren(); if (!query) { empty.hidden = false; empty.textContent = "Search guides and API reference."; return; } pagefind = await loadPagefind(); const response = await pagefind.search(query); const results = await Promise.all(response.results.slice(0, 6).map((result) => result.data())); empty.hidden = results.length > 0; if (!results.length) empty.textContent = `No results for “${query}”`; results.forEach((result) => { const item = document.createElement("li"); const anchor = document.createElement("a"); anchor.href = result.url; const title = document.createElement("strong"); title.textContent = result.meta?.title || result.url; const excerpt = document.createElement("span"); excerpt.textContent = result.excerpt.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim(); anchor.append(title, excerpt); item.append(anchor); hits.append(item); }); });
-    </script>
+    <script src="../scripts/docs.ts"></script>
   </body>
 </html>
