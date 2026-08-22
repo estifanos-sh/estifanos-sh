@@ -11,11 +11,16 @@ interface SearchResult {
   url: string;
 }
 
-export function Chrome(props: { children: JSX.Element; landing?: boolean; withSidebar?: boolean }) {
+export function Chrome(props: {
+  children: JSX.Element;
+  overview?: boolean;
+  withSidebar?: boolean;
+}) {
   let input: HTMLInputElement | undefined;
   const pathname = useRouterState({
     select: (state) =>
-      state.location.pathname.replace(new RegExp(`^${mountPath}`), "").replace(/\/$/, "") || "/",
+      state.location.pathname.replace(new RegExp(`^${mountPath}`), "").replace(/\/$/, "") ||
+      docsProject.startSlug,
   });
   const [menuOpen, setMenuOpen] = createSignal(false);
   const [searchOpen, setSearchOpen] = createSignal(false);
@@ -102,9 +107,7 @@ export function Chrome(props: { children: JSX.Element; landing?: boolean; withSi
   });
 
   return (
-    <div
-      classList={{ chrome: true, "chrome-docs": props.withSidebar, "chrome-home": props.landing }}
-    >
+    <div classList={{ chrome: true, "chrome-docs": props.withSidebar }}>
       <a class="skip-link" href="#main-content">
         Skip to content
       </a>
@@ -142,7 +145,7 @@ export function Chrome(props: { children: JSX.Element; landing?: boolean; withSi
           </Show>
         </div>
       </header>
-      <Show when={props.withSidebar}>
+      <Show when={props.overview}>
         <section class="brand-strip" aria-label={`${docsProject.title} by Estifanos`}>
           <div class="brand-strip-inner">
             <div class="brand-strip-copy">
@@ -161,7 +164,7 @@ export function Chrome(props: { children: JSX.Element; landing?: boolean; withSi
           </div>
         </section>
       </Show>
-      <div classList={{ "docs-frame": true, "docs-frame-home": !props.withSidebar }}>
+      <div class="docs-frame">
         <Show when={props.withSidebar}>
           <aside class="rail">
             <Sidebar current={pathname()} />
@@ -200,7 +203,7 @@ export function Chrome(props: { children: JSX.Element; landing?: boolean; withSi
               </p>
             </div>
             <nav aria-label="Footer" class="site-foot-links">
-              <a href={`${mountPath}${docsProject.startSlug}/`}>Installation</a>
+              <a href={`${mountPath}/`}>Overview</a>
               <a href={`https://github.com/${docsProject.repository}`}>GitHub</a>
             </nav>
           </div>
@@ -288,7 +291,11 @@ export function Sidebar(props: { current: string; onNavigate?: () => void }) {
                       <a
                         aria-current={props.current === item.slug ? "page" : undefined}
                         classList={{ active: props.current === item.slug }}
-                        href={`${mountPath}${item.slug}/`}
+                        href={
+                          item.slug === docsProject.startSlug
+                            ? `${mountPath}/`
+                            : `${mountPath}${item.slug}/`
+                        }
                         onClick={props.onNavigate}
                       >
                         {item.title}

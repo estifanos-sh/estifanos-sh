@@ -32,8 +32,17 @@ for (const page of documentationPages) {
 }
 
 const mountPath = `/${project.id}`;
+const overviewAlias = path.join(target, project.startSlug.slice(1), "index.html");
+mkdirSync(path.dirname(overviewAlias), { recursive: true });
+writeFileSync(
+  overviewAlias,
+  `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="robots" content="noindex"><meta http-equiv="refresh" content="0;url=${mountPath}/"><link rel="canonical" href="${mountPath}/"><title>Overview | ${project.title}</title></head><body><p><a href="${mountPath}/">Continue to ${project.title} overview.</a></p></body></html>\n`,
+);
 const index = documentationPages
-  .map((page) => `- [${page.title}](${mountPath}${page.slug}.md): ${page.description}`)
+  .map((page) => {
+    const url = page.slug === project.startSlug ? `${mountPath}/` : `${mountPath}${page.slug}.md`;
+    return `- [${page.title}](${url}): ${page.description}`;
+  })
   .join("\n");
 writeFileSync(
   path.join(target, "llms.txt"),

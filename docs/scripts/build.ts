@@ -13,15 +13,6 @@ import path from "node:path";
 
 interface ProjectConfig {
   description: string;
-  hero: {
-    cards: Array<{ body: string; slug: string; title: string }>;
-    deck: string;
-    eyebrow: string;
-    paletteLabel: string;
-    paletteSlug: string;
-    paletteText: string;
-    status: string;
-  };
   id: string;
   installCommand: string;
   llmsDescription: string;
@@ -106,7 +97,7 @@ function validateNavigation(config: ProjectConfig, pagesFile: string) {
   if (new Set(navigation).size !== navigation.length) {
     throw new Error(`Duplicate sidebar entry in ${configFile}`);
   }
-  for (const slug of [config.startSlug, config.hero.paletteSlug, ...navigation]) {
+  for (const slug of [config.startSlug, ...navigation]) {
     if (!pageSlugs.has(slug)) throw new Error(`Navigation points to missing page: ${slug}`);
   }
   const unlisted = [...pageSlugs].filter((slug) => !navigation.includes(slug));

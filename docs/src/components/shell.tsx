@@ -1,5 +1,5 @@
 import { Show, createEffect, on, onMount } from "solid-js";
-import { mountPath } from "../config/project";
+import { docsProject, mountPath } from "../config/project";
 import { adjacentPages, sectionFor } from "../config/sidebar";
 import type { DocumentationPage } from "../generated/docs";
 import { Chrome } from "./chrome";
@@ -80,7 +80,7 @@ export function DocsShell(props: { page: DocumentationPage }) {
   );
 
   return (
-    <Chrome withSidebar>
+    <Chrome overview={props.page.slug === docsProject.startSlug} withSidebar>
       <main class="doc-pane" id="main-content">
         <div class="doc-grid">
           <div class="doc-content">
@@ -103,7 +103,14 @@ export function DocsShell(props: { page: DocumentationPage }) {
             <nav class="pager" aria-label="Adjacent documentation pages">
               <Show when={adjacent().previous}>
                 {(previous) => (
-                  <a class="pager-link" href={`${mountPath}${previous().slug}/`}>
+                  <a
+                    class="pager-link"
+                    href={
+                      previous().slug === docsProject.startSlug
+                        ? `${mountPath}/`
+                        : `${mountPath}${previous().slug}/`
+                    }
+                  >
                     <span>Previous</span>
                     <strong>{previous().title}</strong>
                   </a>
@@ -111,7 +118,14 @@ export function DocsShell(props: { page: DocumentationPage }) {
               </Show>
               <Show when={adjacent().next}>
                 {(next) => (
-                  <a class="pager-link pager-next" href={`${mountPath}${next().slug}/`}>
+                  <a
+                    class="pager-link pager-next"
+                    href={
+                      next().slug === docsProject.startSlug
+                        ? `${mountPath}/`
+                        : `${mountPath}${next().slug}/`
+                    }
+                  >
                     <span>Next</span>
                     <strong>{next().title}</strong>
                   </a>
