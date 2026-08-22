@@ -1,1 +1,9 @@
-[]
+[
+  {
+    "title": "Documentation",
+    "description": "Project documentation.",
+    "slug": "/start",
+    "html": "<p>Project documentation.</p>",
+    "markdown": "Project documentation."
+  }
+]

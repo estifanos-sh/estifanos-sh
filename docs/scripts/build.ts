@@ -38,7 +38,7 @@ const config = JSON.parse(readFileSync(configFile, "utf8")) as ProjectConfig;
 validateConfig(config, projectId);
 
 const generated = path.join(engine, "src", "generated");
-const preserved = ["project.ts", "docs.ts", "docs.json", "../routeTree.gen.ts"].map((file) => {
+const preserved = ["project.ts", "docs.json"].map((file) => {
   const target = path.resolve(generated, file);
   return { contents: existsSync(target) ? readFileSync(target) : undefined, target };
 });
@@ -52,7 +52,10 @@ try {
   await run("node", [path.join(engine, "scripts", "content", "compile.ts"), content, projectId]);
   validateNavigation(config, path.join(generated, "docs.json"));
   rmSync(path.join(engine, "dist"), { force: true, recursive: true });
-  await run("vp", ["build"], engine);
+  await run("vp", ["exec", "astro", "build"], engine, {
+    ...process.env,
+    ASTRO_TELEMETRY_DISABLED: "1",
+  });
   await run("node", [path.join(engine, "scripts", "static", "assemble.ts"), output]);
   const assets = path.join(docs, "public");
   if (existsSync(assets)) cpSync(assets, output, { force: true, recursive: true });
@@ -129,9 +132,14 @@ function collect(directory: string, extension: string): string[] {
   });
 }
 
-function run(command: string, arguments_: string[], cwd = process.cwd()) {
+function run(
+  command: string,
+  arguments_: string[],
+  cwd = process.cwd(),
+  env: NodeJS.ProcessEnv = process.env,
+) {
   return new Promise<void>((resolve, reject) => {
-    const child = spawn(command, arguments_, { cwd, stdio: "inherit" });
+    const child = spawn(command, arguments_, { cwd, env, stdio: "inherit" });
     child.on("error", reject);
     child.on("exit", (code) => {
       if (code === 0) resolve();

@@ -1,0 +1,15 @@
+---
+import DocsLayout from "../layouts/DocsLayout.astro";
+import pages from "../generated/docs.json";
+import { project } from "../generated/project";
+
+export function getStaticPaths() {
+  return pages
+    .filter((page) => page.slug !== project.startSlug)
+    .map((page) => ({ params: { slug: page.slug.slice(1) }, props: { page } }));
+}
+
+const { page } = Astro.props;
+---
+
+<DocsLayout {page} />

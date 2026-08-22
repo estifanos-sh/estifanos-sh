@@ -3,9 +3,9 @@ import { defineConfig } from "vite-plus";
 export default defineConfig({
   build: {
     outDir: "dist/client",
-  },
-  fmt: {
-    ignorePatterns: ["docs/src/routeTree.gen.ts"],
+    rollupOptions: {
+      input: ["index.html", "landing/sh/index.html"],
+    },
   },
   staged: {
     "*": "vp check --fix",

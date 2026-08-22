@@ -1,10 +1,9 @@
-import { mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
 import rehypeStringify from "rehype-stringify";
 import remarkFrontmatter from "remark-frontmatter";
 import remarkGfm from "remark-gfm";
-import remarkMdx from "remark-mdx";
 import remarkParse from "remark-parse";
 import remarkRehype from "remark-rehype";
 import { createHighlighter } from "shiki";
@@ -17,12 +16,11 @@ const projectId = process.argv[3];
 if (!process.argv[2] || !projectId) {
   throw new Error("compile requires a content directory and project id");
 }
-const mountPath = `/${projectId}`;
-const generated = path.join(root, "src", "generated", "docs.ts");
-const generatedJson = path.join(root, "src", "generated", "docs.json");
-const generatedPages = path.join(root, "src", "generated", "pages");
 
-interface DocumentationPage {
+const mountPath = `/${projectId}`;
+const generated = path.join(root, "src", "generated", "docs.json");
+
+export interface DocumentationPage {
   description: string;
   html: string;
   markdown: string;
@@ -31,17 +29,16 @@ interface DocumentationPage {
 }
 
 interface MutableNode {
-  attributes?: Array<{ name: string; type: string; value?: unknown }>;
   children?: MutableNode[];
   depth?: number;
   lang?: string;
   meta?: string;
-  name?: string;
   properties?: Record<string, unknown>;
   tagName?: string;
   type: string;
   value?: string;
 }
+
 const highlighter = await createHighlighter({
   themes: ["github-dark-dimmed", "github-light"],
   langs: [
@@ -65,7 +62,21 @@ const highlighter = await createHighlighter({
 function walk(directory: string): string[] {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
     const entryPath = path.join(directory, entry.name);
-    return entry.isDirectory() ? walk(entryPath) : [entryPath];
+    if (entry.isDirectory()) {
+      if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(entry.name)) {
+        throw new Error(`Invalid documentation directory name: ${entryPath}`);
+      }
+      return walk(entryPath);
+    }
+    if (!entry.isFile())
+      throw new Error(`Documentation content must be regular files: ${entryPath}`);
+    if (entry.name === "+page.md") {
+      throw new Error(`Legacy +page.md files are not supported: ${entryPath}`);
+    }
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*\.md$/u.test(entry.name)) {
+      throw new Error(`Documentation files must be lowercase slug Markdown files: ${entryPath}`);
+    }
+    return [entryPath];
   });
 }
 
@@ -81,105 +92,34 @@ function slugify(value: string): string {
     .replace(/^-|-$/g, "");
 }
 
-function removeSveltePrelude(source: string): string {
-  return source
-    .replace(/^\s*<script[\s\S]*?<\/script>\s*/u, "")
-    .replace(/^\s*<svelte:head>[\s\S]*?<\/svelte:head>\s*/u, "");
-}
-
-function componentAttributes(attributes: MutableNode["attributes"] = []): Record<string, unknown> {
-  return Object.fromEntries(
-    attributes
-      .filter((attribute) => attribute.type === "mdxJsxAttribute")
-      .map((attribute) => [attribute.name, attribute.value ?? ""]),
-  );
+function validateMarkdown(tree: MutableNode, file: string): void {
+  visit(tree, (node: MutableNode) => {
+    if (node.type === "heading" && node.depth === 1) {
+      throw new Error(`Markdown H1 is not allowed; use frontmatter title instead: ${file}`);
+    }
+    if (node.type !== "html") return;
+    const markup = node.value ?? "";
+    if (/<\/?\s*svelte:/iu.test(markup) || /<\/?\s*script\b/iu.test(markup)) {
+      throw new Error(`Svelte or script markup is not allowed in documentation: ${file}`);
+    }
+    if (/<\/?\s*[A-Z][A-Za-z0-9._-]*/u.test(markup)) {
+      throw new Error(`Custom MDX components are not allowed in documentation: ${file}`);
+    }
+  });
 }
 
 function markdownComponents() {
   return (tree: MutableNode): void => {
     visit(tree, (node: MutableNode) => {
-      if (node.type === "code") {
-        node.type = "html";
-        node.value = highlighter.codeToHtml(node.value ?? "", {
-          lang: node.lang || "text",
-          themes: { light: "github-light", dark: "github-dark-dimmed" },
-        });
-        delete node.lang;
-        delete node.meta;
-        return;
-      }
-
-      if (node.type !== "mdxJsxFlowElement" && node.type !== "mdxJsxTextElement") return;
-      const attributes = componentAttributes(node.attributes);
-
-      if (node.name === "script" || node.name === "svelte:head") {
-        node.type = "element";
-        node.tagName = "template";
-        node.properties = {};
-        node.children = [];
-        return;
-      }
-
-      const definitions = {
-        CardGrid: { tagName: "div", properties: { className: ["card-grid"] } },
-        Tabs: { tagName: "div", properties: { className: ["tabs"], dataTabs: "" } },
-        TabItem: {
-          tagName: "section",
-          properties: { className: ["tab-panel"], dataTab: attributes.label || "Tab" },
-        },
-      };
-      const definition = node.name
-        ? (definitions as Record<string, { properties: Record<string, unknown>; tagName: string }>)[
-            node.name
-          ]
-        : undefined;
-
-      if (node.name === "Card") {
-        node.type = "element";
-        node.tagName = "article";
-        node.properties = { className: ["card"] };
-        node.children = [
-          {
-            type: "element",
-            tagName: "p",
-            properties: { className: ["card-title"] },
-            children: [
-              {
-                type: "text",
-                value: typeof attributes.title === "string" ? attributes.title : "",
-              },
-            ],
-          },
-          {
-            type: "element",
-            tagName: "div",
-            properties: { className: ["card-body"] },
-            children: node.children ?? [],
-          },
-        ];
-        return;
-      }
-
-      if (definition) {
-        node.type = "element";
-        node.tagName = definition.tagName;
-        node.properties = definition.properties;
-        return;
-      }
-
-      node.type = "element";
-      node.tagName = node.name || "span";
-      node.properties = attributes;
+      if (node.type !== "code") return;
+      node.type = "html";
+      node.value = highlighter.codeToHtml(node.value ?? "", {
+        lang: node.lang || "text",
+        themes: { light: "github-light", dark: "github-dark-dimmed" },
+      });
+      delete node.lang;
+      delete node.meta;
     });
-  };
-}
-
-function removeDocumentTitle() {
-  return (tree: MutableNode): void => {
-    const titleIndex = (tree.children ?? []).findIndex(
-      (node: MutableNode) => node.type === "heading" && node.depth === 1,
-    );
-    if (titleIndex !== -1) tree.children?.splice(titleIndex, 1);
   };
 }
 
@@ -187,7 +127,7 @@ function addHeadingIds() {
   const seen = new Map<string, number>();
   return (tree: MutableNode): void => {
     visit(tree, "element", (node: MutableNode) => {
-      if (!node.tagName || !/^h[1-6]$/.test(node.tagName)) return;
+      if (!node.tagName || !/^h[2-6]$/.test(node.tagName)) return;
       const base = slugify(textContent(node)) || "section";
       const suffix = seen.get(base) || 0;
       seen.set(base, suffix + 1);
@@ -217,58 +157,32 @@ const processor = unified()
   .use(remarkParse)
   .use(remarkFrontmatter, ["yaml"])
   .use(remarkGfm)
-  .use(remarkMdx)
-  .use(removeDocumentTitle)
   .use(markdownComponents)
   .use(remarkRehype, { allowDangerousHtml: true })
   .use(addHeadingIds)
   .use(prefixInternalLinks)
   .use(rehypeStringify, { allowDangerousHtml: true });
 
+const files = walk(source).sort();
+if (!files.length) throw new Error(`No Markdown files found in ${source}`);
+
 const pages: DocumentationPage[] = await Promise.all(
-  walk(source)
-    .filter((file) => file.endsWith("+page.md"))
-    .sort()
-    .map(async (file) => {
-      const parsed = matter(readFileSync(file, "utf8"));
-      const relative = path.relative(source, file).replace(/\/\\/g, "/");
-      const slug = `/${relative.slice(0, -"/+page.md".length)}`;
-      const title = String(parsed.data.title || slug.split("/").at(-1) || projectId);
-      const description = String(parsed.data.description || "");
-      const content = removeSveltePrelude(parsed.content);
-      const html = String(await processor.process(content));
-      return { description, html, markdown: content.trim(), slug, title };
-    }),
+  files.map(async (file) => {
+    const parsed = matter(readFileSync(file, "utf8"));
+    const relative = path.relative(source, file).replaceAll(path.sep, "/");
+    const slug = `/${relative.slice(0, -".md".length)}`;
+    const title = typeof parsed.data.title === "string" ? parsed.data.title.trim() : "";
+    const description =
+      typeof parsed.data.description === "string" ? parsed.data.description.trim() : "";
+    if (!title || !description) {
+      throw new Error(`Documentation frontmatter requires title and description: ${file}`);
+    }
+    const tree = processor.parse(parsed.content) as MutableNode;
+    validateMarkdown(tree, file);
+    const html = String(processor.stringify(await processor.run(tree as never)));
+    return { description, html, markdown: parsed.content.trim(), slug, title };
+  }),
 );
 
 mkdirSync(path.dirname(generated), { recursive: true });
-rmSync(generatedPages, { force: true, recursive: true });
-mkdirSync(generatedPages, { recursive: true });
-
-const pageEntries = pages.map((page, index) => {
-  const filename = `${String(index).padStart(2, "0")}-${page.slug.slice(1).replaceAll("/", "-")}`;
-  const { markdown: _markdown, ...clientPage } = page;
-  writeFileSync(
-    path.join(generatedPages, `${filename}.ts`),
-    `import type { DocumentationPage } from "../docs";\n\n` +
-      `const page = ${JSON.stringify(clientPage)} satisfies DocumentationPage;\n\n` +
-      `export default page;\n`,
-  );
-  return { filename, page };
-});
-
-writeFileSync(
-  generated,
-  `/* This file is generated by scripts/content/compile.ts. */\n` +
-    `export interface DocumentationPage { title: string; description: string; slug: string; html: string; }\n` +
-    `export interface DocumentationPageMeta { title: string; description: string; slug: string; }\n` +
-    `export const documentationPages: DocumentationPageMeta[] = ${JSON.stringify(pages.map(({ html: _html, markdown: _markdown, ...page }) => page))};\n` +
-    `export const documentationBySlug = new Map(documentationPages.map((page) => [page.slug, page]));\n` +
-    `export const documentationLoaders: Record<string, () => Promise<DocumentationPage>> = {\n${pageEntries
-      .map(
-        ({ filename, page }) =>
-          `  ${JSON.stringify(page.slug)}: () => import("./pages/${filename}").then((module) => module.default),`,
-      )
-      .join("\n")}\n};\n`,
-);
-writeFileSync(generatedJson, `${JSON.stringify(pages, null, 2)}\n`);
+writeFileSync(generated, `${JSON.stringify(pages, null, 2)}\n`);

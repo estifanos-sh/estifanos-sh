@@ -24,9 +24,12 @@ const serveStaticFile = httpAction(async (ctx, request) => {
     return Response.redirect(url, 301);
   }
 
-  // Normalize root
+  // The two landing documents are static and contain no hostname-switching
+  // client code. Select the engineering landing page at the HTTP boundary.
   if (path === "" || path === "/") {
-    path = "/index.html";
+    path = isEngineeringHost(request.headers.get("host"))
+      ? "/landing/sh/index.html"
+      : "/index.html";
   }
 
   // Strip trailing slash (e.g., /convex-auth/ -> /convex-auth) so resolution works.
@@ -137,6 +140,15 @@ function hasFileExtension(path: string): boolean {
 
 function isHashedAsset(path: string): boolean {
   return /[-.][\dA-Za-z_]{6,12}\.[a-z]+$/.test(path);
+}
+
+function isEngineeringHost(host: string | null): boolean {
+  const hostname = host?.split(":", 1)[0]?.toLowerCase();
+  return (
+    hostname === "estifanos.sh" ||
+    hostname === "www.estifanos.sh" ||
+    hostname === "estifanos.sh.localhost"
+  );
 }
 
 // Catch-all route for all GET requests
