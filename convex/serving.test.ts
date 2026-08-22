@@ -79,5 +79,6 @@ describe("cacheControlFor", () => {
     expect(isHashedAsset("/privacy-policy.html")).toBe(false);
     expect(isHashedAsset("/pagefind/pagefind-highlight.js")).toBe(false);
     expect(isHashedAsset("/_astro/app.BcTwWGl9.css")).toBe(true);
+    expect(isHashedAsset("/convex-embedded/_astro/search.BJMRmqJX.json")).toBe(true);
   });
 });

@@ -71,7 +71,7 @@ export function contentTypeFor(path: string): string {
 
 export function isHashedAsset(path: string): boolean {
   const match = path.match(/(?:[-._])([\dA-Za-z_-]{6,32})\.[A-Za-z\d_]+$/);
-  return match !== null && /[\d_-]/.test(match[1]);
+  return match !== null && (path.includes("/_astro/") || /[\d_-]/.test(match[1]));
 }
 
 function decodeRequestPath(path: string): string | null {
