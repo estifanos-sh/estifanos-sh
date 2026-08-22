@@ -24,7 +24,10 @@ function element<T extends Element>(selector: string): T | null {
 function closeMenu() {
   const menu = element<HTMLElement>("[data-menu]");
   const opener = element<HTMLButtonElement>("[data-menu-open]");
-  if (menu) delete menu.dataset.open;
+  if (menu) {
+    menu.hidden = false;
+    delete menu.dataset.open;
+  }
   opener?.setAttribute("aria-expanded", "false");
 }
 
@@ -166,7 +169,10 @@ function setupPage() {
 
   element<HTMLButtonElement>("[data-menu-open]")?.addEventListener("click", () => {
     const menu = element<HTMLElement>("[data-menu]");
-    if (menu) menu.dataset.open = "";
+    if (menu) {
+      menu.hidden = false;
+      menu.dataset.open = "";
+    }
     element<HTMLButtonElement>("[data-menu-open]")?.setAttribute("aria-expanded", "true");
   });
   document
