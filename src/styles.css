@@ -22,19 +22,6 @@ body {
   margin: 0;
 }
 
-[data-site="com"] body {
-  background: #eee9dc;
-}
-
-[data-site="sh"] body {
-  background: #18231d;
-}
-
-[data-site="com"] [data-page="sh"],
-[data-site="sh"] [data-page="com"] {
-  display: none;
-}
-
 a {
   color: inherit;
   text-decoration-color: var(--signal);

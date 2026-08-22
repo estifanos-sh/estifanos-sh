@@ -7,14 +7,14 @@ Source for [estifanos.com](https://estifanos.com) and
 - `estifanos.sh` is the project directory and serves project documentation at
   `/convex-auth/` and `/convex-embedded/`.
 
-Both domains use the same TanStack Start and Solid application. Hostname-aware
-client routing selects the appropriate landing view. The interactive canvas is
-entirely local to the browser: it has no database, shared state, or history.
+Both landing pages are static HTML and CSS. The HTTP handler selects the
+appropriate document for each hostname, so the landing output has no
+framework or hostname-switching client JavaScript.
 
 ## Tooling
 
-- [TanStack Start](https://tanstack.com/start/latest/docs/framework/solid/overview)
-  with [Solid](https://www.solidjs.com/)
+- [Astro](https://astro.build/) for static product documentation (without
+  Starlight)
 - [Vite+](https://viteplus.dev/) and pnpm
 - [Convex static hosting](https://github.com/get-convex/static-hosting)
 
@@ -35,8 +35,11 @@ vp run test
 ```
 
 The shared documentation application lives in `docs/`. Each product repository
-contributes only `docs/docs.json`, `docs/content/**/+page.md`, and optional
-static assets. `vp run build` validates both contracts, renders both sites,
+contributes only `docs/docs.json`, clean `docs/content/**/*.md`, and optional
+static assets. Each Markdown file is named after its slug (for example,
+`api/request.md`), and frontmatter is the sole source of its title and
+description. `vp run build` rejects `+page.md`, Svelte or script markup,
+custom MDX components, and Markdown H1 titles. It validates both contracts, renders both sites,
 generates Pagefind and the `llms` files, and assembles `/convex-auth/` and
 `/convex-embedded/` into the ignored `dist/client` deployment artifact.
 `config/docs.json` is the allowlist of source repositories, refs, local paths,

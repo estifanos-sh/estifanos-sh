@@ -4,8 +4,7 @@ import { project } from "../../src/generated/project.ts";
 
 const root = path.resolve(import.meta.dirname, "../..");
 const publicDir = path.join(root, "dist", "client");
-const nested = path.join(publicDir, project.id);
-const source = existsSync(nested) ? nested : publicDir;
+const source = publicDir;
 const target = path.resolve(process.argv[2] || "");
 
 interface DocumentationPage {
@@ -16,7 +15,7 @@ interface DocumentationPage {
 }
 
 if (!process.argv[2]) throw new Error("assemble requires an output directory");
-if (!existsSync(source)) throw new Error(`TanStack static output is missing: ${source}`);
+if (!existsSync(source)) throw new Error(`Astro static output is missing: ${source}`);
 rmSync(target, { force: true, recursive: true });
 mkdirSync(path.dirname(target), { recursive: true });
 cpSync(source, target, { recursive: true });

@@ -1,0 +1,10 @@
+---
+import DocsLayout from "../layouts/DocsLayout.astro";
+import pages from "../generated/docs.json";
+import { project } from "../generated/project";
+
+const page = pages.find((candidate) => candidate.slug === project.startSlug);
+if (!page) throw new Error(`Missing overview document: ${project.startSlug}`);
+---
+
+<DocsLayout {page} />

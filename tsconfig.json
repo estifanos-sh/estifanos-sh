@@ -10,12 +10,10 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "preserve",
-    "jsxImportSource": "solid-js",
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "types": ["node"]
   },
-  "include": ["src", "convex/**/*.ts", "vite.config.ts"],
-  "exclude": ["node_modules", "build", "dist", ".output", ".svelte-kit", ".vinxi"]
+  "include": ["src", "convex/**/*.ts", "astro.config.ts", "vite.config.ts"],
+  "exclude": ["node_modules", "build", "dist", ".output"]
 }

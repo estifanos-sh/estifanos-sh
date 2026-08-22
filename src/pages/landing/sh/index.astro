@@ -1,0 +1,31 @@
+---
+import LandingLayout from "../../../layouts/LandingLayout.astro";
+---
+
+<LandingLayout
+  description="Open-source infrastructure developed and maintained by Estifanos Engineering."
+  favicon="/estifanos-mark-green.svg"
+  title="estifanos.sh"
+>
+  <div class="site engineering-site">
+    <header class="site-header">
+      <a aria-label="estifanos.sh home" class="site-brand" href="/">
+        <svg aria-hidden="true" class="estifanos-mark" viewBox="0 0 32 32">
+          <path d="M4 4h12v12H4z" />
+          <path d="M16 4a12 12 0 0 1 12 12H16z" />
+          <path d="M4 16h12v12A12 12 0 0 1 4 16Z" />
+          <path d="M16 16h12a12 12 0 0 1-12 12Z" />
+        </svg>
+        <span>Estifanos Engineering</span>
+      </a>
+    </header>
+    <main class="profile projects-profile">
+      <p class="engineering-intro">Estifanos Engineering develops and maintains open-source software and SDKs.</p>
+      <h1>Current Projects</h1>
+      <ul class="project-links">
+        <li><a href="/convex-auth/">@convex-auth</a></li>
+        <li><a href="/convex-embedded/">@convex-embedded</a></li>
+      </ul>
+    </main>
+  </div>
+</LandingLayout>
