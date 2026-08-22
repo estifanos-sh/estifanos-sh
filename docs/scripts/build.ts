@@ -38,7 +38,7 @@ const config = JSON.parse(readFileSync(configFile, "utf8")) as ProjectConfig;
 validateConfig(config, projectId);
 
 const generated = path.join(engine, "src", "generated");
-const preserved = ["project.ts", "docs.json"].map((file) => {
+const preserved = ["project.ts", "docs.json", "search.json"].map((file) => {
   const target = path.resolve(generated, file);
   return { contents: existsSync(target) ? readFileSync(target) : undefined, target };
 });
@@ -59,7 +59,6 @@ try {
   await run("node", [path.join(engine, "scripts", "static", "assemble.ts"), output]);
   const assets = path.join(docs, "public");
   if (existsSync(assets)) cpSync(assets, output, { force: true, recursive: true });
-  await run("vp", ["exec", "pagefind", "--site", output], engine);
   validateOutput(config, output);
 } finally {
   rmSync(path.join(generated, "pages"), { force: true, recursive: true });
@@ -108,7 +107,7 @@ function validateNavigation(config: ProjectConfig, pagesFile: string) {
 }
 
 function validateOutput(config: ProjectConfig, directory: string) {
-  const required = ["index.html", "404.html", "llms.txt", "llms-full.txt", "pagefind/pagefind.js"];
+  const required = ["index.html", "404.html", "llms.txt", "llms-full.txt"];
   for (const relative of required) {
     const file = path.join(directory, relative);
     if (!existsSync(file) || !statSync(file).isFile() || !statSync(file).size) {
@@ -117,6 +116,10 @@ function validateOutput(config: ProjectConfig, directory: string) {
   }
   const htmlPages = collect(directory, ".html");
   const markdownPages = collect(content, ".md");
+  const searchIndexes = collect(path.join(directory, "_astro"), ".json");
+  if (searchIndexes.length !== 1) {
+    throw new Error(`Expected one generated search index, found ${searchIndexes.length}`);
+  }
   if (htmlPages.length < markdownPages.length + 2) {
     throw new Error(`Incomplete static site for ${config.id}`);
   }

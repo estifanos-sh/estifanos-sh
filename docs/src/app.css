@@ -1,14 +1,3 @@
-/* Convex theme copied from waynesutton/friendsofconvex-yapper-leaderboard
-   (src/globals.css html[data-theme="convex"], public/brand/*, index.html fonts). */
-
-@font-face {
-  font-family: Inter;
-  font-display: swap;
-  font-style: normal;
-  font-weight: 100 900;
-  src: url("./assets/fonts/inter.woff2") format("woff2");
-}
-
 @font-face {
   font-family: "Inter Tight";
   font-display: swap;
@@ -18,8 +7,8 @@
 }
 
 :root {
-  --font-body: Inter, ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Inter Tight", Inter, ui-sans-serif, sans-serif;
+  --font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display: "Inter Tight", ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, "SFMono-Regular", "Menlo", "Consolas", monospace;
   --studio-paper: #f7eedb;
   --studio-paper-deep: #eadfc7;
@@ -235,7 +224,7 @@ input {
 .brand-strip::after {
   position: absolute;
   inset: 0;
-  background: url("../public/brand/convex-stripes.svg") center bottom / 100% auto no-repeat;
+  background: url("./assets/convex-stripes.svg") center bottom / 100% auto no-repeat;
   content: "";
   pointer-events: none;
 }
@@ -391,6 +380,11 @@ input {
   border-right: 1px solid var(--line-whisper);
   background: var(--studio-paper);
   margin: 0;
+}
+
+.rail-scrim,
+.drawer-head {
+  display: none;
 }
 
 .rail-group {
@@ -593,9 +587,7 @@ input {
 }
 
 .doc-prose pre code,
-.doc-prose .shiki,
-.doc-prose .shiki span {
-  color: var(--shiki-dark) !important;
+.doc-prose .shiki {
   font-size: 13px;
   line-height: 1.45;
 }
@@ -809,7 +801,6 @@ input {
   background: rgba(33, 23, 24, 0.45);
 }
 
-.drawer,
 .search-sheet {
   position: relative;
   width: min(100% - 24px, 360px);
@@ -821,12 +812,7 @@ input {
   background: var(--studio-sheet);
 }
 
-.drawer {
-  padding: 0 0 1rem;
-}
-
 .drawer-head {
-  display: flex;
   min-height: 4rem;
   align-items: center;
   justify-content: space-between;
@@ -856,10 +842,6 @@ input {
 .drawer-close svg {
   width: 1.125rem;
   height: 1.125rem;
-}
-
-.drawer .rail-group {
-  padding: 0 8px;
 }
 
 .search-overlay {
@@ -935,8 +917,7 @@ input {
 }
 
 @media (min-width: 56rem) {
-  .menu-btn,
-  .overlay:not(.search-overlay) {
+  .menu-btn {
     display: none;
   }
 }
@@ -948,7 +929,50 @@ input {
   }
 
   .rail {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: block;
+    width: auto;
+    height: auto;
+    padding: 0;
+    overflow: visible;
+    border: 0;
+    background: transparent;
+  }
+
+  .rail:not([data-open]) {
     display: none;
+  }
+
+  .rail-scrim {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: rgba(33, 23, 24, 0.45);
+  }
+
+  .rail-panel {
+    position: relative;
+    width: min(calc(100% - 2rem), 26rem);
+    max-height: calc(100dvh - 2rem);
+    margin: 1rem;
+    overflow: auto;
+    overscroll-behavior: contain;
+    border: 1px solid var(--line-emphasis);
+    border-radius: var(--radius-medium);
+    background: var(--studio-sheet);
+  }
+
+  .drawer-head {
+    display: flex;
+  }
+
+  .rail-panel nav {
+    padding: 1rem;
   }
 
   .doc-pane {
@@ -975,17 +999,6 @@ input {
 
   .search-chip kbd {
     display: none;
-  }
-
-  .drawer {
-    width: min(calc(100% - 2rem), 26rem);
-    max-height: calc(100dvh - 2rem);
-    margin: 1rem;
-    overscroll-behavior: contain;
-  }
-
-  .drawer .rail-group {
-    padding-inline: 1rem;
   }
 
   .search-overlay {

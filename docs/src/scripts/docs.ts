@@ -1,17 +1,21 @@
-let pagefindPromise: Promise<Pagefind> | undefined;
+import searchIndexUrl from "../generated/search.json?url";
 
-interface PagefindResult {
-  data(): Promise<{
-    excerpt: string;
-    meta?: { title?: string };
-    url: string;
-  }>;
+interface SearchDocument {
+  description: string;
+  text: string;
+  title: string;
+  url: string;
 }
 
-interface Pagefind {
-  init(): Promise<void>;
-  search(query: string): Promise<{ results: PagefindResult[] }>;
+interface SearchEntry extends SearchDocument {
+  normalizedDescription: string;
+  normalizedText: string;
+  normalizedTitle: string;
 }
+
+let searchIndexPromise: Promise<SearchEntry[]> | undefined;
+let searchRevision = 0;
+let searchTimer: number | undefined;
 
 function element<T extends Element>(selector: string): T | null {
   return document.querySelector<T>(selector);
@@ -20,11 +24,13 @@ function element<T extends Element>(selector: string): T | null {
 function closeMenu() {
   const menu = element<HTMLElement>("[data-menu]");
   const opener = element<HTMLButtonElement>("[data-menu-open]");
-  if (menu) menu.hidden = true;
+  if (menu) delete menu.dataset.open;
   opener?.setAttribute("aria-expanded", "false");
 }
 
 function closeSearch() {
+  searchRevision += 1;
+  window.clearTimeout(searchTimer);
   const search = element<HTMLElement>("[data-search]");
   const input = element<HTMLInputElement>("[data-search-input]");
   const hits = element<HTMLOListElement>("[data-search-hits]");
@@ -43,17 +49,91 @@ function openSearch() {
   const input = element<HTMLInputElement>("[data-search-input]");
   if (search) search.hidden = false;
   input?.focus();
-  void loadPagefind();
+  void loadSearchIndex().catch(() => undefined);
 }
 
-function loadPagefind(): Promise<Pagefind> {
-  const base = document.body.dataset.base || "/";
-  return (pagefindPromise ??= import(/* @vite-ignore */ `${base}pagefind/pagefind.js`).then(
-    async (module: Pagefind) => {
-      await module.init();
-      return module;
-    },
-  ));
+function normalizeSearch(value: string): string {
+  return value.normalize("NFKD").replace(/\p{M}/gu, "").toLowerCase();
+}
+
+function loadSearchIndex(): Promise<SearchEntry[]> {
+  return (searchIndexPromise ??= fetch(searchIndexUrl).then(async (response) => {
+    if (!response.ok) throw new Error(`Search index failed with status ${response.status}`);
+    const documents = (await response.json()) as SearchDocument[];
+    return documents.map((document) => ({
+      ...document,
+      normalizedDescription: normalizeSearch(document.description),
+      normalizedText: normalizeSearch(document.text),
+      normalizedTitle: normalizeSearch(document.title),
+    }));
+  }));
+}
+
+function searchDocuments(documents: SearchEntry[], query: string): SearchEntry[] {
+  const normalizedQuery = normalizeSearch(query).trim();
+  const terms = normalizedQuery.split(/\s+/u);
+  return documents
+    .map((document) => {
+      const searchable = `${document.normalizedTitle} ${document.normalizedDescription} ${document.normalizedText}`;
+      if (!terms.every((term) => searchable.includes(term))) return undefined;
+
+      let score = 0;
+      if (document.normalizedTitle === normalizedQuery) score += 240;
+      else if (document.normalizedTitle.startsWith(normalizedQuery)) score += 160;
+      else if (document.normalizedTitle.includes(normalizedQuery)) score += 120;
+      if (document.normalizedDescription.includes(normalizedQuery)) score += 48;
+      if (document.normalizedText.includes(normalizedQuery)) score += 16;
+      for (const term of terms) {
+        if (document.normalizedTitle.includes(term)) score += 32;
+        if (document.normalizedDescription.includes(term)) score += 12;
+        if (document.normalizedText.includes(term)) score += 4;
+      }
+      return { document, score };
+    })
+    .filter((result): result is { document: SearchEntry; score: number } => Boolean(result))
+    .sort(
+      (left, right) =>
+        right.score - left.score || left.document.title.localeCompare(right.document.title),
+    )
+    .slice(0, 6)
+    .map(({ document }) => document);
+}
+
+async function renderSearch(query: string, revision: number): Promise<void> {
+  let documents: SearchEntry[];
+  try {
+    documents = await loadSearchIndex();
+  } catch {
+    if (revision !== searchRevision) return;
+    const empty = element<HTMLElement>("[data-search-empty]");
+    if (empty) {
+      empty.hidden = false;
+      empty.textContent = "Search is temporarily unavailable.";
+    }
+    return;
+  }
+  if (revision !== searchRevision) return;
+  const hits = element<HTMLOListElement>("[data-search-hits]");
+  const empty = element<HTMLElement>("[data-search-empty]");
+  if (!hits || !empty) return;
+
+  const results = searchDocuments(documents, query);
+  empty.hidden = results.length > 0;
+  if (!results.length) empty.textContent = `No results for “${query}”`;
+
+  results.forEach((result) => {
+    const item = document.createElement("li");
+    const anchor = document.createElement("a");
+    anchor.href = result.url;
+    anchor.dataset.astroPrefetch = "tap";
+    const title = document.createElement("strong");
+    title.textContent = result.title;
+    const excerpt = document.createElement("span");
+    excerpt.textContent = result.description;
+    anchor.append(title, excerpt);
+    item.append(anchor);
+    hits.append(item);
+  });
 }
 
 function installCodeCopyButtons() {
@@ -86,7 +166,7 @@ function setupPage() {
 
   element<HTMLButtonElement>("[data-menu-open]")?.addEventListener("click", () => {
     const menu = element<HTMLElement>("[data-menu]");
-    if (menu) menu.hidden = false;
+    if (menu) menu.dataset.open = "";
     element<HTMLButtonElement>("[data-menu-open]")?.setAttribute("aria-expanded", "true");
   });
   document
@@ -109,7 +189,7 @@ function setupPage() {
     }, 1600);
   });
 
-  element<HTMLInputElement>("[data-search-input]")?.addEventListener("input", async (event) => {
+  element<HTMLInputElement>("[data-search-input]")?.addEventListener("input", (event) => {
     const input = event.currentTarget;
     if (!(input instanceof HTMLInputElement)) return;
     const hits = element<HTMLOListElement>("[data-search-hits]");
@@ -119,33 +199,16 @@ function setupPage() {
     const query = input.value.trim();
     hits.replaceChildren();
     if (!query) {
+      searchRevision += 1;
+      window.clearTimeout(searchTimer);
       empty.hidden = false;
       empty.textContent = "Search guides and API reference.";
       return;
     }
 
-    const pagefind = await loadPagefind();
-    const response = await pagefind.search(query);
-    const results = await Promise.all(response.results.slice(0, 6).map((result) => result.data()));
-    empty.hidden = results.length > 0;
-    if (!results.length) empty.textContent = `No results for “${query}”`;
-
-    results.forEach((result) => {
-      const item = document.createElement("li");
-      const anchor = document.createElement("a");
-      anchor.href = result.url;
-      anchor.dataset.astroPrefetch = "tap";
-      const title = document.createElement("strong");
-      title.textContent = result.meta?.title || result.url;
-      const excerpt = document.createElement("span");
-      excerpt.textContent = result.excerpt
-        .replace(/<[^>]+>/g, "")
-        .replace(/\s+/g, " ")
-        .trim();
-      anchor.append(title, excerpt);
-      item.append(anchor);
-      hits.append(item);
-    });
+    const revision = ++searchRevision;
+    window.clearTimeout(searchTimer);
+    searchTimer = window.setTimeout(() => void renderSearch(query, revision), 120);
   });
 }
 
