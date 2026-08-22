@@ -7,7 +7,11 @@ import "../app.css";
 export const Route = createRootRoute({
   head: () => ({
     links: [
-      { href: `${mountPath}/favicon.svg`, rel: "icon", type: "image/svg+xml" },
+      {
+        href: `${mountPath}/favicon.svg?v=estifanos-engineering-1`,
+        rel: "icon",
+        type: "image/svg+xml",
+      },
       { href: "https://use.typekit.net", rel: "preconnect" },
       { href: "https://p.typekit.net", rel: "preconnect" },
       { href: "https://fonts.googleapis.com", rel: "preconnect" },

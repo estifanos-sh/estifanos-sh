@@ -1,10 +1,11 @@
-import { tanstackStart } from "@tanstack/solid-start/plugin/vite";
 import { defineConfig } from "vite-plus";
-import solid from "vite-plugin-solid";
 
 export default defineConfig({
+  build: {
+    outDir: "dist/client",
+  },
   fmt: {
-    ignorePatterns: ["src/routeTree.gen.ts"],
+    ignorePatterns: ["docs/src/routeTree.gen.ts"],
   },
   staged: {
     "*": "vp check --fix",
@@ -26,6 +27,7 @@ export default defineConfig({
         cache: true,
         env: [],
         input: [
+          "index.html",
           "src/**",
           "config/**",
           "scripts/**",
@@ -47,6 +49,7 @@ export default defineConfig({
         command: "vp check",
         cache: true,
         input: [
+          "index.html",
           "src/**",
           "config/**",
           "convex/**",
@@ -84,20 +87,6 @@ export default defineConfig({
     },
   },
   publicDir: "static",
-  plugins: [
-    tanstackStart({
-      router: {
-        quoteStyle: "double",
-        semicolons: true,
-      },
-      prerender: {
-        enabled: true,
-        crawlLinks: true,
-        failOnError: true,
-      },
-    }),
-    solid({ ssr: true }),
-  ],
   test: {
     passWithNoTests: true,
   },
