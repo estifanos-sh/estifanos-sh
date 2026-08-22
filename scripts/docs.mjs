@@ -8,13 +8,7 @@ const scripts = dirname(fileURLToPath(import.meta.url));
 const root = resolve(scripts, "..");
 const execute = promisify(execFile);
 const configuration = JSON.parse(await readFile(join(root, "config", "docs.json"), "utf8"));
-const requiredFiles = [
-  "index.html",
-  "404.html",
-  "llms.txt",
-  "llms-full.txt",
-  "pagefind/pagefind.js",
-];
+const requiredFiles = ["index.html", "404.html", "llms.txt", "llms-full.txt"];
 
 validateConfiguration(configuration);
 
@@ -46,15 +40,11 @@ async function assemble() {
 
     const destination = join(output, project.id);
     assertWithin(output, destination);
-    const nestedPagefind = join(source, "pagefind", "pagefind");
     await rm(destination, { force: true, recursive: true });
     await mkdir(destination, { recursive: true });
     await cp(source, destination, {
       recursive: true,
-      filter: (path) =>
-        path !== join(source, "docs-source.json") &&
-        path !== nestedPagefind &&
-        !path.startsWith(`${nestedPagefind}/`),
+      filter: (path) => path !== join(source, "docs-source.json"),
     });
 
     const metadata = await readMetadata(source, project);

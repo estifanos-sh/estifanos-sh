@@ -1,6 +1,5 @@
 ---
 import "../app.css";
-import interFont from "../assets/fonts/inter.woff2";
 import interTightFont from "../assets/fonts/intertight.woff2";
 import { project } from "../generated/project";
 import { ClientRouter } from "astro:transitions";
@@ -52,20 +51,19 @@ function href(slug: string) {
 ---
 
 <!doctype html>
-<html data-theme="convex" lang="en">
+<html data-theme="convex" lang="en" transition:animate="none">
   <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1" name="viewport" />
     <meta content={page.description} name="description" />
     <meta content="#f7eedb" name="theme-color" />
     <link href={`${base}favicon.svg?v=estifanos-engineering-1`} rel="icon" type="image/svg+xml" />
-    <link as="font" crossorigin="anonymous" href={interFont} rel="preload" type="font/woff2" />
     <link as="font" crossorigin="anonymous" href={interTightFont} rel="preload" type="font/woff2" />
     <link href={href(page.slug)} rel="canonical" />
     <title>{page.title} | {docsProject.title}</title>
     <ClientRouter fallback="swap" />
   </head>
-  <body data-base={base}>
+  <body>
     <div class="chrome chrome-docs">
       <a class="skip-link" href="#main-content">Skip to content</a>
       <header class="masthead">
@@ -99,13 +97,17 @@ function href(slug: string) {
         </div>
       </section>}
       <div class="docs-frame">
-        <aside class="rail">
-          <nav aria-label="Documentation">
-            {docsProject.sidebar.map((group) => <details class="rail-group" open={group.items.some((item) => item.slug === current)}>
-              <summary>{group.label}</summary>
-              <ul>{group.items.map((item) => <li><a aria-current={item.slug === current ? "page" : undefined} class:list={{ active: item.slug === current }} data-astro-prefetch="tap" href={href(item.slug)}>{item.title}</a></li>)}</ul>
-            </details>)}
-          </nav>
+        <aside aria-label="Documentation menu" class="rail" data-menu id="mobile-docs-nav">
+          <button aria-label="Close navigation" class="rail-scrim" data-menu-close></button>
+          <div class="rail-panel">
+            <div class="drawer-head"><strong>Documentation</strong><button aria-label="Close navigation" class="drawer-close" data-menu-close type="button">×</button></div>
+            <nav aria-label="Documentation">
+              {docsProject.sidebar.map((group) => <details class="rail-group" open={group.items.some((item) => item.slug === current)}>
+                <summary>{group.label}</summary>
+                <ul>{group.items.map((item) => <li><a aria-current={item.slug === current ? "page" : undefined} class:list={{ active: item.slug === current }} data-astro-prefetch="tap" href={href(item.slug)}>{item.title}</a></li>)}</ul>
+              </details>)}
+            </nav>
+          </div>
         </aside>
         <main class="doc-pane" id="main-content">
           <div class="doc-grid"><div class="doc-content">
@@ -114,7 +116,7 @@ function href(slug: string) {
               <h1>{page.title}</h1>
               <p class="lede">{page.description}</p>
             </header>
-            <article class="doc-prose" data-pagefind-body set:html={page.html} tabindex="-1"></article>
+            <article class="doc-prose" set:html={page.html} tabindex="-1"></article>
             <nav aria-label="Adjacent documentation pages" class="pager">
               {previous && <a class="pager-link" data-astro-prefetch="tap" href={href(previous.slug)}><span>Previous</span><strong>{previous.title}</strong></a>}
               {next && <a class:list={{ "pager-link": true, "pager-next": true }} data-astro-prefetch="tap" href={href(next.slug)}><span>Next</span><strong>{next.title}</strong></a>}
@@ -125,12 +127,6 @@ function href(slug: string) {
           <div class="site-foot-primary"><p class="site-foot-built">Built with <span aria-label="love">♥</span> by <a href="https://estifanos.com">estifanos.com</a></p></div>
           <nav aria-label="Footer" class="site-foot-links"><a data-astro-prefetch="tap" href={base}>Overview</a><a href={`https://github.com/${docsProject.repository}`}>GitHub</a></nav>
         </div></footer>
-      </div>
-      <div class="overlay" data-menu hidden>
-        <button aria-label="Close navigation" class="scrim" data-menu-close></button>
-        <nav class="drawer" id="mobile-docs-nav"><div class="drawer-head"><strong>Documentation</strong><button aria-label="Close navigation" class="drawer-close" data-menu-close type="button">×</button></div>
-          {docsProject.sidebar.map((group) => <details class="rail-group" open={group.items.some((item) => item.slug === current)}><summary>{group.label}</summary><ul>{group.items.map((item) => <li><a class:list={{ active: item.slug === current }} data-astro-prefetch="tap" href={href(item.slug)}>{item.title}</a></li>)}</ul></details>)}
-        </nav>
       </div>
       <div class="overlay search-overlay" data-search hidden>
         <button aria-label="Close search" class="scrim" data-search-close></button>

@@ -19,6 +19,7 @@ if (!process.argv[2] || !projectId) {
 
 const mountPath = `/${projectId}`;
 const generated = path.join(root, "src", "generated", "docs.json");
+const generatedSearch = path.join(root, "src", "generated", "search.json");
 const productConfig = JSON.parse(readFileSync(path.resolve(source, "..", "docs.json"), "utf8")) as {
   startSlug?: unknown;
 };
@@ -48,10 +49,11 @@ interface CompiledPage extends DocumentationPage {
   anchors: Set<string>;
   file: string;
   links: string[];
+  searchText: string;
 }
 
 const highlighter = await createHighlighter({
-  themes: ["github-dark-dimmed", "github-light"],
+  themes: ["github-dark-dimmed"],
   langs: [
     "typescript",
     "javascript",
@@ -153,7 +155,7 @@ function markdownComponents() {
       node.type = "html";
       node.value = highlighter.codeToHtml(node.value ?? "", {
         lang: node.lang || "text",
-        themes: { light: "github-light", dark: "github-dark-dimmed" },
+        theme: "github-dark-dimmed",
       });
       delete node.lang;
       delete node.meta;
@@ -220,6 +222,7 @@ const compiledPages: CompiledPage[] = await Promise.all(
     }
     const tree = processor.parse(parsed.content) as MutableNode;
     validateMarkdown(tree, file);
+    const searchText = textContent(tree).replace(/\s+/gu, " ").trim();
     const anchors = collectHeadingIds(tree);
     const links = collectRootRelativeLinks(tree);
     const html = String(processor.stringify(await processor.run(tree as never)));
@@ -230,6 +233,7 @@ const compiledPages: CompiledPage[] = await Promise.all(
       html,
       links,
       markdown: parsed.content.trim(),
+      searchText,
       slug,
       title,
     };
@@ -238,11 +242,22 @@ const compiledPages: CompiledPage[] = await Promise.all(
 
 validateInternalLinks(compiledPages);
 const pages: DocumentationPage[] = compiledPages.map(
-  ({ anchors: _anchors, file: _file, links: _links, ...page }) => page,
+  ({ anchors: _anchors, file: _file, links: _links, searchText: _searchText, ...page }) => page,
 );
 
 mkdirSync(path.dirname(generated), { recursive: true });
 writeFileSync(generated, `${JSON.stringify(pages, null, 2)}\n`);
+writeFileSync(
+  generatedSearch,
+  `${JSON.stringify(
+    compiledPages.map(({ description, searchText: text, slug, title }) => ({
+      description,
+      text,
+      title,
+      url: slug === startSlug ? `${mountPath}/` : `${mountPath}${slug}/`,
+    })),
+  )}\n`,
+);
 
 function validateInternalLinks(pages: CompiledPage[]): void {
   const pageBySlug = new Map(pages.map((page) => [page.slug, page]));
@@ -251,7 +266,6 @@ function validateInternalLinks(pages: CompiledPage[]): void {
     "/favicon.svg",
     "/llms-full.txt",
     "/llms.txt",
-    "/pagefind/pagefind.js",
     "/robots.txt",
     ...publicAssetPaths(),
   ]);

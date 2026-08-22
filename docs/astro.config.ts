@@ -8,8 +8,16 @@ export default defineConfig({
   base: `/${project.id}`,
   build: {
     format: "directory",
+    inlineStylesheets: "never",
   },
+  compressHTML: true,
   outDir: "./dist/client",
   output: "static",
   publicDir: "./public",
+  vite: {
+    build: {
+      assetsInlineLimit: 0,
+      cssCodeSplit: false,
+    },
+  },
 });
