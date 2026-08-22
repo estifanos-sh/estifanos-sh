@@ -187,6 +187,9 @@ function prefixInternalLinks() {
           !path.extname(pathname) && !pathname.endsWith("/") ? `${pathname}/` : pathname;
         node.properties.href = `${mountPath}${routePath}${query ? `?${query}` : ""}${hash ? `#${hash}` : ""}`;
       }
+      if (href.startsWith("/") && !href.startsWith("//")) {
+        node.properties.dataAstroPrefetch = "tap";
+      }
     });
   };
 }

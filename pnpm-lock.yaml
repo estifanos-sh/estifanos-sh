@@ -9,11 +9,11 @@ importers:
   .:
     dependencies:
       '@convex-dev/static-hosting':
-        specifier: ^0.1.4
-        version: 0.1.4(convex@1.41.0(react@19.2.4))(react@19.2.4)
+        specifier: ^0.2.1
+        version: 0.2.1(convex@1.45.0(react@19.2.4))(react@19.2.4)
       convex:
-        specifier: ^1.41.0
-        version: 1.41.0(react@19.2.4)
+        specifier: ^1.45.0
+        version: 1.45.0(react@19.2.4)
     devDependencies:
       '@types/node':
         specifier: ^25.9.3
@@ -243,11 +243,11 @@ packages:
     resolution: {integrity: sha512-y7/yvZ2TPAnR9+jnc00klvNNLkJiXFFrQA/hlLCcxA9a2A4zQIOimyFQ9XfwYKiGD1fb5GY8vbKIIgO8d5Tb2A==}
     engines: {node: '>= 20.12.0'}
 
-  '@convex-dev/static-hosting@0.1.4':
-    resolution: {integrity: sha512-dc6fFP6oFI1tbeh80NMXbwcmpGQre31nrHrzH/F/gmXkR8+iRiNsY2SOjae/Vc4u8qlQVDoAVMsp9HZPf7V+Vw==}
+  '@convex-dev/static-hosting@0.2.1':
+    resolution: {integrity: sha512-QMcfKUOB8dHeLa81xzk2GEIn7LzhEvtdgYhfFpIFer6uE/+xMStDxHAZsX5h1qsttYi7wNbEKAMf7MfOQ7ZrMw==}
     hasBin: true
     peerDependencies:
-      convex: ^1.35.0
+      convex: ^1.37.0
       react: ^18.3.1 || ^19.0.0
 
   '@emnapi/core@1.11.1':
@@ -1881,9 +1881,9 @@ packages:
   convert-source-map@2.0.0:
     resolution: {integrity: sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==}
 
-  convex@1.41.0:
-    resolution: {integrity: sha512-euxVf6yfpB7/VGKOobkLgjpbJidsUgW+b0ezonEyCUPqlpHFwR4/yIiI1hjjErzraiw91GxrtxpXQClMLNqU+w==}
-    engines: {node: '>=18.0.0', npm: '>=7.0.0'}
+  convex@1.45.0:
+    resolution: {integrity: sha512-AV3B56Ptu/14d76g3urBJ50dwpiZa6uJaLT84OWox5aCwZIJiuAamdjv3lLHDzs8vv5kC31anEZohhUe3qJ2bA==}
+    engines: {node: '>=20.0.0', npm: '>=7.0.0'}
     hasBin: true
     peerDependencies:
       '@auth0/auth0-react': ^2.0.1
@@ -3079,18 +3079,6 @@ packages:
     engines: {node: '>=8'}
     hasBin: true
 
-  ws@8.20.1:
-    resolution: {integrity: sha512-It4dO0K5v//JtTXuPkfEOaI3uUN87iYPnqo/ZzqCoG3g8uhA66QUMs/SrM0YK7/NAu+r4LMh/9dq2A7k+rHs+w==}
-    engines: {node: '>=10.0.0'}
-    peerDependencies:
-      bufferutil: ^4.0.1
-      utf-8-validate: '>=5.0.2'
-    peerDependenciesMeta:
-      bufferutil:
-        optional: true
-      utf-8-validate:
-        optional: true
-
   ws@8.21.0:
     resolution: {integrity: sha512-Vsp28b7DRcimFQvrqu2Wek3z1iYxDCWqHYB8Qsnk/S4RfaCQzPGPyBNuVjJV3cd6UiKtUtp6sNM77gWvzcCH+g==}
     engines: {node: '>=10.0.0'}
@@ -3278,9 +3266,9 @@ snapshots:
       fast-wrap-ansi: 0.2.2
       sisteransi: 1.0.5
 
-  '@convex-dev/static-hosting@0.1.4(convex@1.41.0(react@19.2.4))(react@19.2.4)':
+  '@convex-dev/static-hosting@0.2.1(convex@1.45.0(react@19.2.4))(react@19.2.4)':
     dependencies:
-      convex: 1.41.0(react@19.2.4)
+      convex: 1.45.0(react@19.2.4)
       react: 19.2.4
 
   '@emnapi/core@1.11.1':
@@ -4398,11 +4386,11 @@ snapshots:
 
   convert-source-map@2.0.0: {}
 
-  convex@1.41.0(react@19.2.4):
+  convex@1.45.0(react@19.2.4):
     dependencies:
       esbuild: 0.27.0
       prettier: 3.8.4
-      ws: 8.20.1
+      ws: 8.21.0
     optionalDependencies:
       react: 19.2.4
     transitivePeerDependencies:
@@ -5856,8 +5844,6 @@ snapshots:
     dependencies:
       siginfo: 2.0.0
       stackback: 0.0.2
-
-  ws@8.20.1: {}
 
   ws@8.21.0: {}
 

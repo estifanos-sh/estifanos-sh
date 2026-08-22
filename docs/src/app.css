@@ -18,9 +18,9 @@
 }
 
 :root {
-  --font-body: Geist, Inter, ui-sans-serif, system-ui, sans-serif;
-  --font-display: Inter, ui-sans-serif, sans-serif;
-  --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", "Menlo", "Consolas", monospace;
+  --font-body: Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Inter Tight", Inter, ui-sans-serif, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "Menlo", "Consolas", monospace;
   --studio-paper: #f7eedb;
   --studio-paper-deep: #eadfc7;
   --studio-sheet: #fffaf0;
@@ -256,7 +256,7 @@ input {
 .brand-strip-title {
   margin: 0;
   color: #fffaf0;
-  font-family: "neue-haas-grotesk-display", "Inter Tight", Inter, sans-serif;
+  font-family: var(--font-display);
   font-size: clamp(2.5rem, 3.5vw, 4rem);
   font-weight: 900;
   letter-spacing: -0.035em;
@@ -514,7 +514,7 @@ input {
 .not-found h1 {
   margin: 0;
   color: var(--broadcast-ink);
-  font-family: "neue-haas-grotesk-display", "Inter Tight", Inter, sans-serif;
+  font-family: var(--font-display);
   font-weight: 900;
   font-style: normal;
   letter-spacing: -0.02em;
