@@ -16,6 +16,6 @@
     "forceConsistentCasingInFileNames": true,
     "types": ["node"]
   },
-  "include": ["src", "convex/**/*.ts", "vite.config.ts"],
+  "include": ["src", "convex/**/*.ts", "astro.config.ts", "vite.config.ts"],
   "exclude": ["node_modules", "build", "dist", ".output", ".svelte-kit", ".vinxi"]
 }

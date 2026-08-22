@@ -1,12 +1,6 @@
 import { defineConfig } from "vite-plus";
 
 export default defineConfig({
-  build: {
-    outDir: "dist/client",
-    rollupOptions: {
-      input: ["index.html", "landing/sh/index.html"],
-    },
-  },
   staged: {
     "*": "vp check --fix",
   },
@@ -23,11 +17,11 @@ export default defineConfig({
     },
     tasks: {
       "cache:build": {
-        command: "vp build",
+        command: "ASTRO_TELEMETRY_DISABLED=1 vp exec astro build",
         cache: true,
         env: [],
         input: [
-          "index.html",
+          "astro.config.ts",
           "src/**",
           "config/**",
           "scripts/**",
@@ -49,7 +43,7 @@ export default defineConfig({
         command: "vp check",
         cache: true,
         input: [
-          "index.html",
+          "astro.config.ts",
           "src/**",
           "config/**",
           "convex/**",
@@ -86,7 +80,6 @@ export default defineConfig({
       },
     },
   },
-  publicDir: "static",
   test: {
     passWithNoTests: true,
   },

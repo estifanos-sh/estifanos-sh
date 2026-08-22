@@ -63,10 +63,10 @@ const serveStaticFile = httpAction(async (ctx, request) => {
 
   // 404 — serve custom error page if available
   if (!asset) {
-    const notFoundPath =
-      path === "/convex-auth" || path.startsWith("/convex-auth/")
-        ? "/convex-auth/404.html"
-        : "/404.html";
+    const project = ["convex-auth", "convex-embedded"].find(
+      (id) => path === `/${id}` || path.startsWith(`/${id}/`),
+    );
+    const notFoundPath = project ? `/${project}/404.html` : "/404.html";
     const notFoundAsset = await getAsset(notFoundPath);
     if (notFoundAsset?.storageId) {
       const notFoundBlob = await ctx.storage.get(notFoundAsset.storageId);

@@ -1,0 +1,24 @@
+---
+import "../styles.css";
+
+interface Props {
+  description: string;
+  favicon: string;
+  title: string;
+}
+
+const { description, favicon, title } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <meta content={description} name="description" />
+    <title>{title}</title>
+    <link href={favicon} rel="icon" type="image/svg+xml" />
+    <link as="font" crossorigin href="/figtree.woff2" rel="preload" type="font/woff2" />
+  </head>
+  <body><slot /></body>
+</html>
