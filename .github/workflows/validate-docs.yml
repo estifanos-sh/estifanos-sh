@@ -9,7 +9,7 @@ permissions:
 jobs:
   docs:
     name: Validate documentation
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Check out product content
         uses: actions/checkout@v7

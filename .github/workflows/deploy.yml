@@ -21,7 +21,7 @@ permissions:
 jobs:
   sources:
     name: Resolve documentation sources
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     outputs:
       matrix: ${{ steps.sources.outputs.matrix }}
     steps:
@@ -38,7 +38,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.sources.outputs.matrix) }}
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Check out landing release machinery
         uses: actions/checkout@v7
@@ -76,7 +76,7 @@ jobs:
   deploy:
     name: Assemble and deploy
     needs: docs
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     environment:
       name: production
       url: https://estifanos.sh/
