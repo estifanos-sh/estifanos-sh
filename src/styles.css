@@ -27,7 +27,7 @@ body {
 }
 
 [data-site="sh"] body {
-  background: #121614;
+  background: #18231d;
 }
 
 [data-site="com"] [data-page="sh"],
@@ -63,7 +63,7 @@ a {
 }
 
 .engineering-site {
-  --paper: #121614;
+  --paper: #18231d;
   --ink: #e9eee7;
   --quiet: #8b978e;
   --signal: #b8ff3d;
