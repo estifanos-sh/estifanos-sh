@@ -1,26 +1,16 @@
 name: Production deployment
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/deploy.yml"
-      - "convex/**"
-      - "package.json"
-      - "pnpm-lock.yaml"
-      - "scripts/**"
-      - "src/**"
-      - "static/**"
-      - "tsconfig.json"
-      - "vite.config.ts"
   workflow_dispatch:
     inputs:
-      convex_auth_sha:
-        description: Convex Auth commit to include
-        required: true
-        default: main
+      convex_auth_ref:
+        description: Exact Convex Auth commit or ref to include
+        required: false
         type: string
-
+      convex_embedded_ref:
+        description: Exact Convex Embedded commit or ref to include
+        required: false
+        type: string
 concurrency:
   group: estifanos-production
   cancel-in-progress: false
@@ -29,20 +19,70 @@ permissions:
   contents: read
 
 jobs:
-  deploy:
-    name: Build and deploy
+  sources:
+    name: Resolve documentation sources
     runs-on: ubuntu-latest
-    environment: production
-
+    outputs:
+      matrix: ${{ steps.sources.outputs.matrix }}
     steps:
       - name: Check out landing source
         uses: actions/checkout@v7
 
-      - name: Resolve Convex Auth source
-        id: auth
-        env:
-          INPUT_SHA: ${{ inputs.convex_auth_sha }}
-        run: echo "sha=${INPUT_SHA:-main}" >> "$GITHUB_OUTPUT"
+      - name: Resolve release matrix
+        id: sources
+        run: node scripts/docs.mjs matrix
+
+  docs:
+    name: Build ${{ matrix.id }} docs
+    needs: sources
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.sources.outputs.matrix) }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out landing release machinery
+        uses: actions/checkout@v7
+
+      - name: Check out ${{ matrix.id }} source
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ matrix.repository }}
+          ref: ${{ matrix.ref }}
+          path: .projects/${{ matrix.id }}
+          persist-credentials: false
+
+      - name: Set up Vite+
+        uses: voidzero-dev/setup-vp@v1
+        with:
+          node-version: 24.15.0
+          cache: true
+          run-install: |
+            args: ['--frozen-lockfile']
+
+      - name: Build and validate ${{ matrix.id }} documentation
+        run: >-
+          node scripts/docs.mjs build
+          "${{ matrix.id }}"
+          ".projects/${{ matrix.id }}"
+
+      - name: Upload immutable documentation
+        uses: actions/upload-artifact@v7
+        with:
+          name: docs-${{ matrix.id }}
+          path: .docs/docs-${{ matrix.id }}
+          if-no-files-found: error
+          retention-days: 7
+
+  deploy:
+    name: Assemble and deploy
+    needs: docs
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://estifanos.sh/
+    steps:
+      - name: Check out landing source
+        uses: actions/checkout@v7
 
       - name: Set up Vite+
         uses: voidzero-dev/setup-vp@v1
@@ -55,35 +95,16 @@ jobs:
       - name: Check landing source
         run: vp check
 
-      - name: Check out Convex Auth source
-        uses: actions/checkout@v7
+      - name: Download immutable documentation
+        uses: actions/download-artifact@v8
         with:
-          repository: estifanos-sh/convex-auth
-          ref: ${{ steps.auth.outputs.sha }}
-          path: .projects/convex-auth
-          persist-credentials: false
+          pattern: docs-*
+          path: .docs
 
-      - name: Install Convex Auth dependencies
-        working-directory: .projects/convex-auth
-        run: vp install --frozen-lockfile
-
-      - name: Build Convex Auth documentation
-        working-directory: .projects/convex-auth
-        run: vp run build:docs
-
-      - name: Deploy production artifact
+      - name: Build, validate, and deploy production artifact
         env:
-          CONVEX_AUTH_DOCS_DIR: ${{ github.workspace }}/.projects/convex-auth/docs/dist/client/convex-auth
           CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
-        run: vp run deploy
+        run: vp run deploy:release
 
-      - name: Record deployment inputs
-        run: |
-          {
-            echo "## Production deployment"
-            echo
-            echo "- Landing: \`${GITHUB_SHA}\`"
-            echo "- Convex Auth: \`${{ steps.auth.outputs.sha }}\`"
-            echo "- Site: https://estifanos.sh/"
-            echo "- Docs: https://estifanos.sh/convex-auth/"
-          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Record deployment provenance
+        run: node scripts/docs.mjs summary

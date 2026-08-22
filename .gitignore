@@ -1,10 +1,15 @@
 node_modules
 .pnpm-store/
+.docs/
+.projects/
 
 # Build output
 dist/
 build/
 .build/
+.output/
+.tanstack/
+.vinxi/
 .svelte-kit/
 
 # OS
