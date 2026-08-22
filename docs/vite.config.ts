@@ -7,8 +7,13 @@ const mountPath = `/${project.id}`;
 
 export default defineConfig({
   base: `${mountPath}/`,
+  root: import.meta.dirname,
   plugins: [
     tanstackStart({
+      router: {
+        quoteStyle: "double",
+        semicolons: true,
+      },
       prerender: {
         autoStaticPathsDiscovery: true,
         autoSubfolderIndex: true,

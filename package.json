@@ -22,16 +22,12 @@
   },
   "dependencies": {
     "@convex-dev/static-hosting": "^0.1.4",
-    "@tanstack/solid-router": "^1.170.16",
-    "@tanstack/solid-start": "^1.168.26",
-    "convex": "^1.41.0",
-    "solid-js": "^1.9.13"
+    "convex": "^1.41.0"
   },
   "devDependencies": {
     "@types/node": "^25.9.3",
     "typescript": "^6.0.3",
     "vite": "npm:@voidzero-dev/vite-plus-core@^0.2.0",
-    "vite-plugin-solid": "^2.11.12",
     "vite-plus": "latest"
   },
   "overrides": {
