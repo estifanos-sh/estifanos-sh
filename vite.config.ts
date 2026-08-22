@@ -35,8 +35,6 @@ export default defineConfig({
           "!build/**",
           "!dist/**",
           "!.output/**",
-          "!.tanstack/**",
-          "!.vinxi/**",
         ],
       },
       "cache:check": {
@@ -55,8 +53,6 @@ export default defineConfig({
           "!build/**",
           "!dist/**",
           "!.output/**",
-          "!.tanstack/**",
-          "!.vinxi/**",
         ],
       },
       "cache:test": {
@@ -74,8 +70,6 @@ export default defineConfig({
           "!build/**",
           "!dist/**",
           "!.output/**",
-          "!.tanstack/**",
-          "!.vinxi/**",
         ],
       },
     },

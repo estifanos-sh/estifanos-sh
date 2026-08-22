@@ -1,4 +1,4 @@
-import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
 import rehypeStringify from "rehype-stringify";
@@ -19,6 +19,10 @@ if (!process.argv[2] || !projectId) {
 
 const mountPath = `/${projectId}`;
 const generated = path.join(root, "src", "generated", "docs.json");
+const productConfig = JSON.parse(readFileSync(path.resolve(source, "..", "docs.json"), "utf8")) as {
+  startSlug?: unknown;
+};
+const startSlug = typeof productConfig.startSlug === "string" ? productConfig.startSlug : "";
 
 export interface DocumentationPage {
   description: string;
@@ -36,7 +40,14 @@ interface MutableNode {
   properties?: Record<string, unknown>;
   tagName?: string;
   type: string;
+  url?: string;
   value?: string;
+}
+
+interface CompiledPage extends DocumentationPage {
+  anchors: Set<string>;
+  file: string;
+  links: string[];
 }
 
 const highlighter = await createHighlighter({
@@ -81,7 +92,7 @@ function walk(directory: string): string[] {
 }
 
 function textContent(node: MutableNode): string {
-  if (node.type === "text") return node.value ?? "";
+  if (node.value !== undefined) return node.value;
   return node.children?.map(textContent).join("") ?? "";
 }
 
@@ -106,6 +117,33 @@ function validateMarkdown(tree: MutableNode, file: string): void {
       throw new Error(`Custom MDX components are not allowed in documentation: ${file}`);
     }
   });
+}
+
+function collectHeadingIds(tree: MutableNode): Set<string> {
+  const seen = new Map<string, number>();
+  const ids = new Set<string>();
+  visit(tree, (node: MutableNode) => {
+    if (node.type !== "heading" || !node.depth || node.depth < 2) return;
+    const base = slugify(textContent(node)) || "section";
+    const suffix = seen.get(base) || 0;
+    seen.set(base, suffix + 1);
+    ids.add(suffix ? `${base}-${suffix + 1}` : base);
+  });
+  return ids;
+}
+
+function collectRootRelativeLinks(tree: MutableNode): string[] {
+  const links: string[] = [];
+  visit(tree, (node: MutableNode) => {
+    if (
+      (node.type === "link" || node.type === "image") &&
+      node.url?.startsWith("/") &&
+      !node.url.startsWith("//")
+    ) {
+      links.push(node.url);
+    }
+  });
+  return links;
 }
 
 function markdownComponents() {
@@ -166,7 +204,7 @@ const processor = unified()
 const files = walk(source).sort();
 if (!files.length) throw new Error(`No Markdown files found in ${source}`);
 
-const pages: DocumentationPage[] = await Promise.all(
+const compiledPages: CompiledPage[] = await Promise.all(
   files.map(async (file) => {
     const parsed = matter(readFileSync(file, "utf8"));
     const relative = path.relative(source, file).replaceAll(path.sep, "/");
@@ -179,10 +217,97 @@ const pages: DocumentationPage[] = await Promise.all(
     }
     const tree = processor.parse(parsed.content) as MutableNode;
     validateMarkdown(tree, file);
+    const anchors = collectHeadingIds(tree);
+    const links = collectRootRelativeLinks(tree);
     const html = String(processor.stringify(await processor.run(tree as never)));
-    return { description, html, markdown: parsed.content.trim(), slug, title };
+    return {
+      anchors,
+      description,
+      file,
+      html,
+      links,
+      markdown: parsed.content.trim(),
+      slug,
+      title,
+    };
   }),
+);
+
+validateInternalLinks(compiledPages);
+const pages: DocumentationPage[] = compiledPages.map(
+  ({ anchors: _anchors, file: _file, links: _links, ...page }) => page,
 );
 
 mkdirSync(path.dirname(generated), { recursive: true });
 writeFileSync(generated, `${JSON.stringify(pages, null, 2)}\n`);
+
+function validateInternalLinks(pages: CompiledPage[]): void {
+  const pageBySlug = new Map(pages.map((page) => [page.slug, page]));
+  const endpoints = new Set([
+    "/404.html",
+    "/favicon.svg",
+    "/llms-full.txt",
+    "/llms.txt",
+    "/pagefind/pagefind.js",
+    "/robots.txt",
+    ...publicAssetPaths(),
+  ]);
+
+  for (const page of pages) {
+    for (const link of page.links) {
+      const { fragment, pathname } = normalizeInternalLink(link);
+      const target = pageBySlug.get(pathname);
+      if (target) {
+        if (fragment && !target.anchors.has(fragment)) {
+          throw new Error(`Unknown heading fragment in ${link} from ${page.file}`);
+        }
+        continue;
+      }
+      if (endpoints.has(pathname)) continue;
+      throw new Error(
+        `Root-relative link points to no generated page or file: ${link} in ${page.file}`,
+      );
+    }
+  }
+}
+
+function normalizeInternalLink(link: string): { fragment: string | undefined; pathname: string } {
+  const [pathAndQuery, rawFragment] = link.split("#", 2);
+  const [rawPathname] = pathAndQuery.split("?", 1);
+  let pathname = rawPathname || "/";
+  if (pathname === mountPath || pathname === `${mountPath}/`) pathname = "/";
+  else if (pathname.startsWith(`${mountPath}/`)) pathname = pathname.slice(mountPath.length);
+  if (pathname.endsWith(".md")) pathname = pathname.slice(0, -".md".length);
+  if (pathname !== "/") pathname = pathname.replace(/\/+$/u, "");
+  const fragment = rawFragment ? decodeFragment(rawFragment) : undefined;
+  return {
+    fragment,
+    pathname: pathname === "/" ? projectStartSlug() : pathname,
+  };
+}
+
+function projectStartSlug(): string {
+  if (!startSlug.startsWith("/")) throw new Error("Documentation config requires a startSlug");
+  return startSlug.replace(/\/+$/u, "") || "/";
+}
+
+function decodeFragment(fragment: string): string {
+  try {
+    return slugify(decodeURIComponent(fragment));
+  } catch {
+    throw new Error(`Invalid URL fragment: #${fragment}`);
+  }
+}
+
+function publicAssetPaths(): string[] {
+  const assets = path.resolve(source, "..", "public");
+  if (!existsSync(assets)) return [];
+  const walkAssets = (directory: string): string[] =>
+    readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+      const entryPath = path.join(directory, entry.name);
+      return entry.isDirectory() ? walkAssets(entryPath) : [entryPath];
+    });
+  return walkAssets(assets).map(
+    (file) => `/${path.relative(assets, file).replaceAll(path.sep, "/")}`,
+  );
+}
