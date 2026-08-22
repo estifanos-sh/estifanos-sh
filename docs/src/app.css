@@ -796,6 +796,10 @@ input {
   z-index: 40;
 }
 
+.overlay[hidden] {
+  display: none !important;
+}
+
 .scrim {
   position: absolute;
   inset: 0;
