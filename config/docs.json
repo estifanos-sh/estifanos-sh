@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "projects": [
+    {
+      "id": "convex-auth",
+      "repository": "estifanos-sh/convex-auth",
+      "ref": "main",
+      "localPath": "../convex-auth",
+      "mountPath": "/convex-auth/"
+    },
+    {
+      "id": "convex-embedded",
+      "repository": "estifanos-sh/convex-embedded",
+      "ref": "main",
+      "localPath": "../convex-embedded",
+      "mountPath": "/convex-embedded/"
+    }
+  ]
+}

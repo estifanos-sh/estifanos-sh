@@ -24,6 +24,7 @@ export default defineConfig({
         env: [],
         input: [
           "src/**",
+          "config/**",
           "scripts/**",
           "static/**",
           "convex/**",
@@ -44,7 +45,9 @@ export default defineConfig({
         cache: true,
         input: [
           "src/**",
+          "config/**",
           "convex/**",
+          "scripts/**",
           "package.json",
           "pnpm-lock.yaml",
           "tsconfig.json",
@@ -61,7 +64,9 @@ export default defineConfig({
         cache: true,
         input: [
           "src/**",
+          "config/**",
           "convex/**",
+          "scripts/**",
           "package.json",
           "pnpm-lock.yaml",
           "tsconfig.json",
