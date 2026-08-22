@@ -11,8 +11,7 @@ export const Route = createRootRoute({
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       {
         name: "description",
-        content:
-          "Robel Estifanos builds durable software systems for authentic frontline workflows.",
+        content: "Estifanos builds durable software, infrastructure, and institutions.",
       },
       { title: "estifanos.com" },
     ],
@@ -32,10 +31,10 @@ function RootDocument(props: { children: JSX.Element }) {
         <HeadContent />
         <script
           innerHTML={`(() => {
-            const projects = location.hostname === "estifanos.sh" || location.hostname === "www.estifanos.sh";
+            const projects = location.hostname === "estifanos.sh" || location.hostname === "www.estifanos.sh" || location.hostname === "estifanos.sh.localhost";
             document.title = projects ? "estifanos.sh" : "estifanos.com";
             const description = document.querySelector('meta[name="description"]');
-            if (description && projects) description.setAttribute("content", "Software projects from estifanos.sh.");
+            if (description && projects) description.setAttribute("content", "An independent engineering practice building durable systems.");
           })();`}
         />
       </head>

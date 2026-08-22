@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/solid-router";
 
-import { AccreteField } from "../components/AccreteField";
+import { OrganizationHome } from "../components/OrganizationHome";
 import { ProjectsDirectory } from "../components/ProjectsDirectory";
 
 export const Route = createFileRoute("/")({
@@ -10,7 +10,10 @@ export const Route = createFileRoute("/")({
 
 function Home() {
   const hostname = typeof window === "undefined" ? "" : window.location.hostname;
-  const isProjectsHost = hostname === "estifanos.sh" || hostname === "www.estifanos.sh";
+  const isProjectsHost =
+    hostname === "estifanos.sh" ||
+    hostname === "www.estifanos.sh" ||
+    hostname === "estifanos.sh.localhost";
 
-  return isProjectsHost ? <ProjectsDirectory /> : <AccreteField />;
+  return isProjectsHost ? <ProjectsDirectory /> : <OrganizationHome />;
 }
