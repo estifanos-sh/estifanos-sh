@@ -55,6 +55,26 @@ describe("resolveStaticRequest", () => {
     });
   });
 
+  test("sends www hosts to the apex", () => {
+    expect(
+      resolveStaticRequest("https://www.estifanos.sh/convex-auth/?from=nav", "www.estifanos.sh"),
+    ).toEqual({
+      kind: "redirect",
+      location: "https://estifanos.sh/convex-auth/?from=nav",
+      status: 301,
+    });
+    expect(resolveStaticRequest("https://www.estifanos.com/", "www.estifanos.com:443")).toEqual({
+      kind: "redirect",
+      location: "https://estifanos.com/",
+      status: 301,
+    });
+    expect(resolveStaticRequest("https://www.example.com/", "www.example.com")).toEqual({
+      kind: "asset",
+      path: "/index.html",
+      varyHost: true,
+    });
+  });
+
   test("rejects malformed escaped paths", () => {
     expect(resolveStaticRequest("https://estifanos.sh/bad/%E0%A4%A", "estifanos.sh")).toEqual({
       kind: "bad-request",
