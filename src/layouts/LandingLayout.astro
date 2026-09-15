@@ -1,21 +1,26 @@
 ---
+import { sites, type SiteId } from "../sites";
 import "../styles.css";
 
 interface Props {
   description: string;
   favicon: string;
+  site: SiteId;
   title: string;
 }
 
-const { description, favicon, title } = Astro.props;
+const { description, favicon, site, title } = Astro.props;
+const { colorScheme, ink, paper, quiet, signal } = sites[site];
+const palette = `color-scheme:${colorScheme};background-color:${paper};--paper:${paper};--ink:${ink};--quiet:${quiet};--signal:${signal}`;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" style={palette}>
   <head>
     <meta charset="UTF-8" />
-    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <meta content="width=device-width, initial-scale=1, viewport-fit=cover" name="viewport" />
     <meta content={description} name="description" />
+    <meta content={paper} name="theme-color" />
     <title>{title}</title>
     <link href={favicon} rel="icon" type="image/svg+xml" />
     <link as="font" crossorigin href="/figtree.woff2" rel="preload" type="font/woff2" />

@@ -20,6 +20,7 @@ body {
   min-width: 320px;
   min-height: 100%;
   margin: 0;
+  background-color: var(--paper);
 }
 
 a {
@@ -38,22 +39,10 @@ a {
 .site {
   --page-x: clamp(1.25rem, 4vw, 4rem);
   min-height: 100svh;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
   background: var(--paper);
   color: var(--ink);
-}
-
-.organization-site {
-  --paper: #eee9dc;
-  --ink: #18231d;
-  --quiet: #667269;
-  --signal: #ef5b3f;
-}
-
-.engineering-site {
-  --paper: #18231d;
-  --ink: #e9eee7;
-  --quiet: #8b978e;
-  --signal: #b8ff3d;
 }
 
 .site-header {
