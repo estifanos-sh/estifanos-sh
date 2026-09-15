@@ -34,6 +34,7 @@ interface Project {
 
 const docsProject = project as Project;
 const { page } = Astro.props as { page: DocumentationPage };
+const site = import.meta.env.SITE;
 const base = `${import.meta.env.BASE_URL}/`;
 const overview = page.slug === docsProject.startSlug;
 const navigation = docsProject.sidebar.flatMap((group) =>
@@ -48,6 +49,18 @@ const next = currentIndex >= 0 ? navigation[currentIndex + 1] : undefined;
 function href(slug: string) {
   return slug === docsProject.startSlug ? base : `${base}${slug.slice(1)}/`;
 }
+
+const title = `${page.title} | ${docsProject.title}`;
+const canonical = new URL(href(page.slug), site).href;
+const socialImage = new URL(`${base}og.png`, site).href;
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareSourceCode",
+  name: docsProject.title,
+  description: page.description,
+  url: canonical,
+  codeRepository: `https://github.com/${docsProject.repository}`,
+};
 ---
 
 <!doctype html>
@@ -59,8 +72,22 @@ function href(slug: string) {
     <meta content="#f7eedb" name="theme-color" />
     <link href={`${base}favicon.svg?v=estifanos-engineering-1`} rel="icon" type="image/svg+xml" />
     <link as="font" crossorigin="anonymous" href={interTightFont} rel="preload" type="font/woff2" />
-    <link href={href(page.slug)} rel="canonical" />
-    <title>{page.title} | {docsProject.title}</title>
+    <link href={canonical} rel="canonical" />
+    <meta content={title} property="og:title" />
+    <meta content={page.description} property="og:description" />
+    <meta content="article" property="og:type" />
+    <meta content={canonical} property="og:url" />
+    <meta content={docsProject.title} property="og:site_name" />
+    <meta content={socialImage} property="og:image" />
+    <meta content="1200" property="og:image:width" />
+    <meta content="630" property="og:image:height" />
+    <meta content={`${docsProject.title} documentation`} property="og:image:alt" />
+    <meta content="summary_large_image" name="twitter:card" />
+    <meta content={title} name="twitter:title" />
+    <meta content={page.description} name="twitter:description" />
+    <meta content={socialImage} name="twitter:image" />
+    <script is:inline set:html={JSON.stringify(structuredData)} type="application/ld+json" />
+    <title>{title}</title>
     <ClientRouter fallback="swap" />
   </head>
   <body>

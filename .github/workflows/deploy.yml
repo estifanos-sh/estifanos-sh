@@ -30,7 +30,7 @@ jobs:
 
       - name: Resolve release matrix
         id: sources
-        run: node scripts/docs.mjs matrix
+        run: node scripts/docs.ts matrix
 
   docs:
     name: Build ${{ matrix.id }} docs
@@ -61,7 +61,7 @@ jobs:
 
       - name: Build and validate ${{ matrix.id }} documentation
         run: >-
-          node scripts/docs.mjs build
+          node scripts/docs.ts build
           "${{ matrix.id }}"
           ".projects/${{ matrix.id }}"
 
@@ -107,4 +107,4 @@ jobs:
         run: vp run deploy:release
 
       - name: Record deployment provenance
-        run: node scripts/docs.mjs summary
+        run: node scripts/docs.ts summary

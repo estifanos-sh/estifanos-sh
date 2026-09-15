@@ -24,6 +24,11 @@ const MIME_TYPES: Record<string, string> = {
   ".xml": "application/xml",
 };
 
+const ENGINEERING_HOST = "estifanos.sh";
+const ORGANIZATION_HOST = "estifanos.com";
+// Mirrors the mount paths in config/docs.json.
+const DOCS_MOUNTS = ["/convex-auth", "/convex-embedded"];
+
 export type StaticRequest =
   | { kind: "asset"; path: string; varyHost: boolean }
   | { kind: "bad-request" }
@@ -31,11 +36,21 @@ export type StaticRequest =
 
 export function resolveStaticRequest(requestUrl: string, host: string | null): StaticRequest {
   const url = new URL(requestUrl);
+  const apex = canonicalHost(host);
+  if (apex) {
+    url.hostname = apex;
+    return { kind: "redirect", location: url.toString(), status: 301 };
+  }
   const path = decodeRequestPath(url.pathname);
   if (path === null) return { kind: "bad-request" };
 
-  if (path === "/convex-auth/sso" || path.startsWith("/convex-auth/sso/")) {
-    url.pathname = path.replace("/convex-auth/sso", "/convex-auth/connection");
+  const organizationDocs =
+    normalizeHost(host) === ORGANIZATION_HOST &&
+    DOCS_MOUNTS.some((mount) => path === mount || path.startsWith(`${mount}/`));
+  const legacySso = path === "/convex-auth/sso" || path.startsWith("/convex-auth/sso/");
+  if (organizationDocs || legacySso) {
+    if (organizationDocs) url.hostname = ENGINEERING_HOST;
+    if (legacySso) url.pathname = path.replace("/convex-auth/sso", "/convex-auth/connection");
     return { kind: "redirect", location: url.toString(), status: 301 };
   }
 
@@ -92,10 +107,20 @@ function isContent(path: string): boolean {
 }
 
 function isEngineeringHost(host: string | null): boolean {
-  const hostname = host?.split(":", 1)[0]?.toLowerCase();
+  const hostname = normalizeHost(host);
   return (
-    hostname === "estifanos.sh" ||
-    hostname === "www.estifanos.sh" ||
-    hostname === "estifanos.sh.localhost"
+    hostname === ENGINEERING_HOST ||
+    hostname === `www.${ENGINEERING_HOST}` ||
+    hostname === `${ENGINEERING_HOST}.localhost`
   );
+}
+
+function canonicalHost(host: string | null): string | null {
+  const hostname = normalizeHost(host);
+  const apex = hostname?.startsWith("www.") ? hostname.slice("www.".length) : null;
+  return apex === ENGINEERING_HOST || apex === ORGANIZATION_HOST ? apex : null;
+}
+
+function normalizeHost(host: string | null): string | null {
+  return host?.split(":", 1)[0]?.toLowerCase() ?? null;
 }
