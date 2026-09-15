@@ -69,6 +69,7 @@ async function assemble() {
   const release: ReleaseEntry[] = [];
 
   await requireFile(join(output, "index.html"), "landing page");
+  await validateLandingLlmsTxt(output);
 
   for (const project of configuration.projects) {
     const source = join(artifacts, `docs-${project.id}`);
@@ -106,6 +107,18 @@ async function assemble() {
 
   await writeSitemap(output);
   console.log(`Assembled ${release.length} documentation sites into ${output}`);
+}
+
+async function validateLandingLlmsTxt(output: string) {
+  const file = join(output, "llms.txt");
+  await requireFile(file, "landing llms.txt");
+  const contents = await readFile(file, "utf8");
+  for (const project of configuration.projects) {
+    const llmsTxt = `${siteUrl}${project.mountPath}llms.txt`;
+    if (!contents.includes(llmsTxt)) {
+      throw new Error(`Landing llms.txt does not reference ${llmsTxt}`);
+    }
+  }
 }
 
 async function writeSitemap(output: string) {

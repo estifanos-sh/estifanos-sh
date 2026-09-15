@@ -75,6 +75,45 @@ describe("resolveStaticRequest", () => {
     });
   });
 
+  test("sends documentation paths on the organization host to the engineering site", () => {
+    expect(
+      resolveStaticRequest(
+        "https://estifanos.com/convex-auth/installation?from=nav",
+        "estifanos.com",
+      ),
+    ).toEqual({
+      kind: "redirect",
+      location: "https://estifanos.sh/convex-auth/installation?from=nav",
+      status: 301,
+    });
+    expect(resolveStaticRequest("https://estifanos.com/convex-embedded", "estifanos.com")).toEqual({
+      kind: "redirect",
+      location: "https://estifanos.sh/convex-embedded",
+      status: 301,
+    });
+    expect(
+      resolveStaticRequest(
+        "https://estifanos.com/convex-auth/sso/callback?code=1",
+        "estifanos.com",
+      ),
+    ).toEqual({
+      kind: "redirect",
+      location: "https://estifanos.sh/convex-auth/connection/callback?code=1",
+      status: 301,
+    });
+    expect(
+      resolveStaticRequest("https://estifanos.com/convex-auth-notes/", "estifanos.com"),
+    ).toEqual({ kind: "asset", path: "/convex-auth-notes/index.html", varyHost: false });
+    expect(resolveStaticRequest("https://estifanos.com/og-com.png", "estifanos.com")).toEqual({
+      kind: "asset",
+      path: "/og-com.png",
+      varyHost: false,
+    });
+    expect(
+      resolveStaticRequest("https://estifanos.sh/convex-auth/installation/", "estifanos.sh"),
+    ).toEqual({ kind: "asset", path: "/convex-auth/installation/index.html", varyHost: false });
+  });
+
   test("rejects malformed escaped paths", () => {
     expect(resolveStaticRequest("https://estifanos.sh/bad/%E0%A4%A", "estifanos.sh")).toEqual({
       kind: "bad-request",
