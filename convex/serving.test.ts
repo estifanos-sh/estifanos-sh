@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vite-plus/test";
-import { cacheControlFor, isHashedAsset, resolveStaticRequest } from "./serving";
+import { cacheControlFor, isHashedAsset, notFoundAssetPath, resolveStaticRequest } from "./serving";
 
 describe("resolveStaticRequest", () => {
   test("selects the landing page by hostname", () => {
@@ -114,10 +114,51 @@ describe("resolveStaticRequest", () => {
     ).toEqual({ kind: "asset", path: "/convex-auth/installation/index.html", varyHost: false });
   });
 
+  test("redirects the internal landing paths to the site root", () => {
+    expect(resolveStaticRequest("https://estifanos.sh/landing/sh/", "estifanos.sh")).toEqual({
+      kind: "redirect",
+      location: "https://estifanos.sh/",
+      status: 301,
+    });
+    expect(
+      resolveStaticRequest("https://estifanos.sh/landing/sh/index.html", "estifanos.sh"),
+    ).toEqual({
+      kind: "redirect",
+      location: "https://estifanos.sh/",
+      status: 301,
+    });
+    expect(resolveStaticRequest("https://estifanos.com/landing/sh/", "estifanos.com")).toEqual({
+      kind: "redirect",
+      location: "https://estifanos.com/",
+      status: 301,
+    });
+  });
+
   test("rejects malformed escaped paths", () => {
     expect(resolveStaticRequest("https://estifanos.sh/bad/%E0%A4%A", "estifanos.sh")).toEqual({
       kind: "bad-request",
     });
+  });
+});
+
+describe("notFoundAssetPath", () => {
+  test("keeps 404 pages inside the documentation tree", () => {
+    expect(notFoundAssetPath("/convex-auth/guide/index.html", "estifanos.sh")).toBe(
+      "/convex-auth/404.html",
+    );
+    expect(notFoundAssetPath("/convex-embedded/guide/index.html", "estifanos.com")).toBe(
+      "/convex-embedded/404.html",
+    );
+  });
+
+  test("serves each landing its own palette", () => {
+    expect(notFoundAssetPath("/missing/index.html", "estifanos.sh")).toBe(
+      "/landing/sh/not-found/index.html",
+    );
+    expect(notFoundAssetPath("/missing/index.html", "www.estifanos.sh")).toBe(
+      "/landing/sh/not-found/index.html",
+    );
+    expect(notFoundAssetPath("/missing/index.html", "estifanos.com")).toBe("/404.html");
   });
 });
 

@@ -1,0 +1,22 @@
+---
+import { sites, type SiteId } from "../sites";
+
+interface Props {
+  site: SiteId;
+}
+
+const { site } = Astro.props;
+const { brand, url } = sites[site];
+---
+
+<header class="site-header">
+  <a class="site-brand" href="/" aria-label={`${new URL(url).hostname} home`}>
+    <svg class="estifanos-mark" viewBox="0 0 32 32" aria-hidden="true">
+      <path d="M4 4h12v12H4z" />
+      <path d="M16 4a12 12 0 0 1 12 12H16z" />
+      <path d="M4 16h12v12A12 12 0 0 1 4 16Z" />
+      <path d="M16 16h12a12 12 0 0 1-12 12Z" />
+    </svg>
+    <span>{brand}</span>
+  </a>
+</header>

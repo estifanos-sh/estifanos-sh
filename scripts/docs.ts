@@ -89,6 +89,10 @@ async function assemble() {
       filter: (path) => path !== join(source, "docs-source.json"),
     });
 
+    const socialCard = join(root, "static", `og-${project.id}.png`);
+    const socialCardInfo = await stat(socialCard).catch(() => undefined);
+    if (socialCardInfo?.isFile()) await cp(socialCard, join(destination, "og.png"));
+
     const metadata = await readMetadata(source, project);
     release.push({
       id: project.id,

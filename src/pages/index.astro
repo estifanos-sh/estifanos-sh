@@ -1,4 +1,5 @@
 ---
+import SiteHeader from "../components/SiteHeader.astro";
 import LandingLayout from "../layouts/LandingLayout.astro";
 ---
 
@@ -9,17 +10,7 @@ import LandingLayout from "../layouts/LandingLayout.astro";
   title="estifanos.com"
 >
   <div class="site">
-    <header class="site-header">
-      <a aria-label="estifanos.com home" class="site-brand" href="/">
-        <svg aria-hidden="true" class="estifanos-mark" viewBox="0 0 32 32">
-          <path d="M4 4h12v12H4z" />
-          <path d="M16 4a12 12 0 0 1 12 12H16z" />
-          <path d="M4 16h12v12A12 12 0 0 1 4 16Z" />
-          <path d="M16 16h12a12 12 0 0 1-12 12Z" />
-        </svg>
-        <span>Estifanos</span>
-      </a>
-    </header>
+    <SiteHeader site="com" />
     <main class="profile"><div class="profile-copy">
       <p>Estifanos LLC is an engineering company founded to build durable, human-centered software.</p>
       <p>Current work includes technical direction for <a href="https://trestle.inc/">@trestle</a> and open-source SDK development for <a href="https://convex.dev/">@convex</a>. Software published by Estifanos is documented at <a href="https://estifanos.sh/">@estifanos.sh</a>.</p>

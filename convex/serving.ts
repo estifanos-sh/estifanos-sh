@@ -28,6 +28,8 @@ const ENGINEERING_HOST = "estifanos.sh";
 const ORGANIZATION_HOST = "estifanos.com";
 // Mirrors the mount paths in config/docs.json.
 const DOCS_MOUNTS = ["/convex-auth", "/convex-embedded"];
+// Artifact space for host-specific landing documents, not a public URL space.
+const LANDING_PREFIX = "/landing/";
 
 export type StaticRequest =
   | { kind: "asset"; path: string; varyHost: boolean }
@@ -54,10 +56,15 @@ export function resolveStaticRequest(requestUrl: string, host: string | null): S
     return { kind: "redirect", location: url.toString(), status: 301 };
   }
 
+  if (path.startsWith(LANDING_PREFIX)) {
+    url.pathname = "/";
+    return { kind: "redirect", location: url.toString(), status: 301 };
+  }
+
   if (path === "" || path === "/") {
     return {
       kind: "asset",
-      path: isEngineeringHost(host) ? "/landing/sh/index.html" : "/index.html",
+      path: isEngineeringHost(host) ? `${LANDING_PREFIX}sh/index.html` : "/index.html",
       varyHost: true,
     };
   }
@@ -100,6 +107,15 @@ function decodeRequestPath(path: string): string | null {
 function hasFileExtension(path: string): boolean {
   const lastSegment = path.split("/").pop() || "";
   return lastSegment.includes(".") && !lastSegment.startsWith(".");
+}
+
+export function notFoundAssetPath(requestPath: string, host: string | null): string {
+  const mount = DOCS_MOUNTS.find(
+    (candidate) =>
+      requestPath === `${candidate}/index.html` || requestPath.startsWith(`${candidate}/`),
+  );
+  if (mount) return `${mount}/404.html`;
+  return isEngineeringHost(host) ? `${LANDING_PREFIX}sh/not-found/index.html` : "/404.html";
 }
 
 function isContent(path: string): boolean {

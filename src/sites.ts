@@ -1,5 +1,6 @@
 export const sites = {
   com: {
+    brand: "Estifanos",
     name: "Estifanos LLC",
     url: "https://estifanos.com/",
     mark: "estifanos-mark-orange.png",
@@ -11,6 +12,7 @@ export const sites = {
     colorScheme: "light",
   },
   sh: {
+    brand: "Estifanos Engineering",
     name: "Estifanos Engineering",
     url: "https://estifanos.sh/",
     mark: "estifanos-mark-green.png",

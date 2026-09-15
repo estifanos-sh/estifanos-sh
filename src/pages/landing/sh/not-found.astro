@@ -1,0 +1,25 @@
+---
+import SiteHeader from "../../../components/SiteHeader.astro";
+import LandingLayout from "../../../layouts/LandingLayout.astro";
+---
+
+<LandingLayout
+  description="Open-source infrastructure developed and maintained by Estifanos Engineering."
+  favicon="/estifanos-mark-green.svg"
+  site="sh"
+  title="Not found | estifanos.sh"
+>
+  <Fragment slot="head"><meta content="noindex" name="robots" /></Fragment>
+  <div class="site">
+    <SiteHeader site="sh" />
+    <main class="profile">
+      <h1>Page not found</h1>
+      <div class="profile-copy">
+        <p>
+          That address does not exist on this site. <a href="/">Return to the home page</a>, or
+          browse the <a href="/convex-auth/">documentation</a>.
+        </p>
+      </div>
+    </main>
+  </div>
+</LandingLayout>

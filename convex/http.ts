@@ -2,7 +2,12 @@ import { httpRouter } from "convex/server";
 import { components } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { httpAction, type ActionCtx } from "./_generated/server";
-import { cacheControlFor, contentTypeFor, resolveStaticRequest } from "./serving";
+import {
+  cacheControlFor,
+  contentTypeFor,
+  notFoundAssetPath,
+  resolveStaticRequest,
+} from "./serving";
 
 const http = httpRouter();
 
@@ -39,10 +44,7 @@ const serveStaticFile = httpAction(async (ctx, request) => {
     });
   }
 
-  const project = ["convex-auth", "convex-embedded"].find(
-    (id) => resolution.path === `/${id}/index.html` || resolution.path.startsWith(`/${id}/`),
-  );
-  const notFoundPath = project ? `/${project}/404.html` : "/404.html";
+  const notFoundPath = notFoundAssetPath(resolution.path, request.headers.get("host"));
   const notFoundAsset = (await ctx.runQuery(components.selfHosting.lib.resolveAssetForHttp, {
     path: notFoundPath,
     spaFallback: false,
