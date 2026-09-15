@@ -19,8 +19,37 @@ const root = resolve(scripts, "..");
 const execute = promisify(execFile);
 // Matches the `site` in docs/astro.config.ts.
 const siteUrl = "https://estifanos.sh";
-const configuration = JSON.parse(await readFile(join(root, "config", "docs.json"), "utf8"));
 const requiredFiles = ["index.html", "404.html", "llms.txt", "llms-full.txt"];
+
+interface ProjectConfiguration {
+  id: string;
+  localPath: string;
+  mountPath: string;
+  ref: string;
+  repository: string;
+}
+
+interface DocsConfiguration {
+  projects: ProjectConfiguration[];
+  schemaVersion: number;
+}
+
+interface DocumentationProvenance {
+  commit: string;
+  id: string;
+  repository: string;
+}
+
+interface ReleaseEntry {
+  commit: string;
+  id: string;
+  mountPath: string;
+  repository: string;
+}
+
+const configuration = JSON.parse(
+  await readFile(join(root, "config", "docs.json"), "utf8"),
+) as DocsConfiguration;
 
 validateConfiguration(configuration);
 
@@ -37,7 +66,7 @@ else throw new Error(`Unknown docs command: ${command ?? "<missing>"}`);
 async function assemble() {
   const output = join(root, "dist", "client");
   const artifacts = resolve(root, process.argv[3]?.trim() || ".docs");
-  const release = [];
+  const release: ReleaseEntry[] = [];
 
   await requireFile(join(output, "index.html"), "landing page");
 
@@ -79,7 +108,7 @@ async function assemble() {
   console.log(`Assembled ${release.length} documentation sites into ${output}`);
 }
 
-async function writeSitemap(output) {
+async function writeSitemap(output: string) {
   const urls = [`${siteUrl}/`];
 
   for (const project of configuration.projects) {
@@ -137,10 +166,11 @@ async function buildSource() {
 }
 
 async function matrix() {
-  const event = process.env.GITHUB_EVENT_PATH
+  const event: { inputs?: { convex_auth_ref?: string; convex_embedded_ref?: string } } = process.env
+    .GITHUB_EVENT_PATH
     ? JSON.parse(await readFile(process.env.GITHUB_EVENT_PATH, "utf8"))
     : {};
-  const refs = {
+  const refs: Record<string, string | undefined> = {
     "convex-auth": event.inputs?.convex_auth_ref?.trim() || process.argv[3]?.trim(),
     "convex-embedded": event.inputs?.convex_embedded_ref?.trim() || process.argv[4]?.trim(),
   };
@@ -169,7 +199,7 @@ async function provenance() {
   await writeProvenance(directory, project, resolve(root, source));
 }
 
-async function writeProvenance(directory, project, source) {
+async function writeProvenance(directory: string, project: ProjectConfiguration, source: string) {
   const { stdout } = await execute("git", ["-C", source, "rev-parse", "HEAD"]);
   const commit = stdout.trim();
   if (!/^[a-f0-9]{40}$/.test(commit)) throw new Error(`Invalid source commit: ${commit}`);
@@ -184,7 +214,7 @@ async function writeProvenance(directory, project, source) {
 async function summary() {
   const release = JSON.parse(
     await readFile(join(root, "dist", "client", ".well-known", "docs-release.json"), "utf8"),
-  );
+  ) as { projects: ReleaseEntry[] };
   const lines = ["## Production deployment", "", `- Landing: \`${process.env.GITHUB_SHA}\``];
   for (const project of release.projects) lines.push(`- ${project.id}: \`${project.commit}\``);
   lines.push("- Site: https://estifanos.sh/");
@@ -196,11 +226,11 @@ async function summary() {
   else process.stdout.write(value);
 }
 
-async function readMetadata(source, project) {
+async function readMetadata(source: string, project: ProjectConfiguration) {
   const file = join(source, "docs-source.json");
   const contents = await readFile(file, "utf8").catch(() => undefined);
   if (!contents) throw new Error(`Missing documentation provenance: ${file}`);
-  const metadata = JSON.parse(contents);
+  const metadata = JSON.parse(contents) as DocumentationProvenance;
   if (
     metadata.id !== project.id ||
     metadata.repository !== project.repository ||
@@ -211,19 +241,19 @@ async function readMetadata(source, project) {
   return metadata;
 }
 
-async function requireFile(file, label) {
+async function requireFile(file: string, label: string) {
   const details = await stat(file).catch(() => undefined);
   if (!details?.isFile() || details.size === 0) throw new Error(`Missing ${label}: ${file}`);
 }
 
-function assertWithin(parent, child) {
+function assertWithin(parent: string, child: string) {
   const path = relative(parent, child);
   if (!path || path.startsWith("..") || isAbsolute(path)) {
     throw new Error(`Documentation destination escapes the site output: ${child}`);
   }
 }
 
-function validateConfiguration(config) {
+function validateConfiguration(config: DocsConfiguration) {
   if (config.schemaVersion !== 1 || !Array.isArray(config.projects) || !config.projects.length) {
     throw new Error("Invalid documentation project configuration");
   }

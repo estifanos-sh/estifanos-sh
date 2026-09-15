@@ -35,4 +35,4 @@ jobs:
 
       - name: Build and validate documentation
         working-directory: .engine
-        run: node scripts/docs.mjs build-source ../.project
+        run: node scripts/docs.ts build-source ../.project

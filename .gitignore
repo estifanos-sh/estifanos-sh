@@ -7,10 +7,6 @@ node_modules
 dist/
 build/
 .build/
-.output/
-.tanstack/
-.vinxi/
-.svelte-kit/
 .astro/
 
 # OS
