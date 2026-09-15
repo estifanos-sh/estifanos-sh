@@ -10,8 +10,18 @@ interface Props {
 }
 
 const { description, favicon, site, title } = Astro.props;
-const { colorScheme, ink, paper, quiet, signal } = sites[site];
+const { colorScheme, ink, mark, name, paper, quiet, related, signal, url } = sites[site];
 const palette = `color-scheme:${colorScheme};background-color:${paper};--paper:${paper};--ink:${ink};--quiet:${quiet};--signal:${signal}`;
+const ogImage = new URL(`og-${site}.png`, url).href;
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name,
+  url,
+  description,
+  logo: new URL(mark, url).href,
+  sameAs: [related],
+};
 ---
 
 <!doctype html>
@@ -21,9 +31,25 @@ const palette = `color-scheme:${colorScheme};background-color:${paper};--paper:$
     <meta content="width=device-width, initial-scale=1, viewport-fit=cover" name="viewport" />
     <meta content={description} name="description" />
     <meta content={paper} name="theme-color" />
-    <title>{title}</title>
+    <link href={url} rel="canonical" />
     <link href={favicon} rel="icon" type="image/svg+xml" />
+    <link href={`/${mark}`} rel="apple-touch-icon" />
     <link as="font" crossorigin href="/figtree.woff2" rel="preload" type="font/woff2" />
+    <meta content={name} property="og:site_name" />
+    <meta content={name} property="og:title" />
+    <meta content={description} property="og:description" />
+    <meta content="website" property="og:type" />
+    <meta content={url} property="og:url" />
+    <meta content={ogImage} property="og:image" />
+    <meta content="1200" property="og:image:width" />
+    <meta content="630" property="og:image:height" />
+    <meta content={`${name} wordmark`} property="og:image:alt" />
+    <meta content="summary_large_image" name="twitter:card" />
+    <meta content={name} name="twitter:title" />
+    <meta content={description} name="twitter:description" />
+    <meta content={ogImage} name="twitter:image" />
+    <script is:inline set:html={JSON.stringify(structuredData)} type="application/ld+json" />
+    <title>{title}</title>
   </head>
   <body><slot /></body>
 </html>

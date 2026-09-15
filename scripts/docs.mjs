@@ -1,4 +1,14 @@
-import { appendFile, cp, lstat, mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
+import {
+  appendFile,
+  cp,
+  lstat,
+  mkdir,
+  readdir,
+  readFile,
+  rm,
+  stat,
+  writeFile,
+} from "node:fs/promises";
 import { execFile } from "node:child_process";
 import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -7,6 +17,8 @@ import { promisify } from "node:util";
 const scripts = dirname(fileURLToPath(import.meta.url));
 const root = resolve(scripts, "..");
 const execute = promisify(execFile);
+// Matches the `site` in docs/astro.config.ts.
+const siteUrl = "https://estifanos.sh";
 const configuration = JSON.parse(await readFile(join(root, "config", "docs.json"), "utf8"));
 const requiredFiles = ["index.html", "404.html", "llms.txt", "llms-full.txt"];
 
@@ -63,7 +75,30 @@ async function assemble() {
     `${JSON.stringify({ schemaVersion: configuration.schemaVersion, projects: release }, null, 2)}\n`,
   );
 
+  await writeSitemap(output);
   console.log(`Assembled ${release.length} documentation sites into ${output}`);
+}
+
+async function writeSitemap(output) {
+  const urls = [`${siteUrl}/`];
+
+  for (const project of configuration.projects) {
+    const directory = join(output, project.id);
+    const files = await readdir(directory, { recursive: true });
+    for (const file of files.filter((entry) => entry.endsWith("index.html")).sort()) {
+      const html = await readFile(join(directory, file), "utf8");
+      if (html.includes('content="noindex"')) continue;
+      const path = dirname(file);
+      urls.push(`${siteUrl}${project.mountPath}${path === "." ? "" : `${path}/`}`);
+    }
+  }
+
+  const entries = urls.map((url) => `  <url>\n    <loc>${url}</loc>\n  </url>`).join("\n");
+  await writeFile(
+    join(output, "sitemap.xml"),
+    `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${entries}\n</urlset>\n`,
+  );
+  console.log(`Wrote ${urls.length} URLs to sitemap.xml`);
 }
 
 async function buildProject() {
