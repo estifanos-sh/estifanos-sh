@@ -1,6 +1,9 @@
 import { defineConfig } from "vite-plus";
 
 export default defineConfig({
+  fmt: {
+    ignorePatterns: ["convex/_generated/ai/**"],
+  },
   staged: {
     "*": "vp check --fix",
   },
