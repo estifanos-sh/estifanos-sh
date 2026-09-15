@@ -28,6 +28,11 @@ jobs:
       - name: Check out landing source
         uses: actions/checkout@v7
 
+      - name: Set up Vite+
+        uses: voidzero-dev/setup-vp@v1
+        with:
+          node-version: 24.15.0
+
       - name: Resolve release matrix
         id: sources
         run: node scripts/docs.ts matrix
