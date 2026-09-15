@@ -1,2 +1,15 @@
 packages:
   - docs
+allowBuilds:
+  esbuild: true
+  "@convex-dev/static-hosting": false
+peerDependencyRules:
+  allowAny:
+    - vite
+  allowedVersions:
+    vite: "*"
+catalog:
+  vite: npm:@voidzero-dev/vite-plus-core@0.3.2
+  vite-plus: 0.3.2
+overrides:
+  vite@*: "catalog:"
