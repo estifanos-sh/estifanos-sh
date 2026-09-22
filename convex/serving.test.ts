@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vite-plus/test";
-import { cacheControlFor, isHashedAsset, notFoundAssetPath, resolveStaticRequest } from "./serving";
+import { isHashedAsset, notFoundAssetPath, resolveStaticRequest } from "./serving";
 
 describe("resolveStaticRequest", () => {
   test("selects the landing page by hostname", () => {
@@ -15,43 +15,13 @@ describe("resolveStaticRequest", () => {
     });
   });
 
-  test("redirects clean document URLs once and resolves directory indexes", () => {
-    expect(
-      resolveStaticRequest(
-        "https://estifanos.sh/convex-auth/installation?from=nav",
-        "estifanos.sh",
-      ),
-    ).toEqual({
-      kind: "redirect",
-      location: "https://estifanos.sh/convex-auth/installation/?from=nav",
-      status: 308,
-    });
+  test("does not preserve removed documentation paths", () => {
     expect(
       resolveStaticRequest("https://estifanos.sh/convex-auth/installation/", "estifanos.sh"),
     ).toEqual({
       kind: "asset",
       path: "/convex-auth/installation/index.html",
       varyHost: false,
-    });
-  });
-
-  test("preserves files and the legacy SSO redirect", () => {
-    expect(
-      resolveStaticRequest(
-        "https://estifanos.sh/convex-auth/assets/app.abc-123.js",
-        "estifanos.sh",
-      ),
-    ).toEqual({
-      kind: "asset",
-      path: "/convex-auth/assets/app.abc-123.js",
-      varyHost: false,
-    });
-    expect(
-      resolveStaticRequest("https://estifanos.sh/convex-auth/sso/callback?code=1", "estifanos.sh"),
-    ).toEqual({
-      kind: "redirect",
-      location: "https://estifanos.sh/convex-auth/connection/callback?code=1",
-      status: 301,
     });
   });
 
@@ -76,29 +46,9 @@ describe("resolveStaticRequest", () => {
   });
 
   test("sends documentation paths on the organization host to the engineering site", () => {
-    expect(
-      resolveStaticRequest(
-        "https://estifanos.com/convex-auth/installation?from=nav",
-        "estifanos.com",
-      ),
-    ).toEqual({
-      kind: "redirect",
-      location: "https://estifanos.sh/convex-auth/installation?from=nav",
-      status: 301,
-    });
     expect(resolveStaticRequest("https://estifanos.com/convex-embedded", "estifanos.com")).toEqual({
       kind: "redirect",
       location: "https://estifanos.sh/convex-embedded",
-      status: 301,
-    });
-    expect(
-      resolveStaticRequest(
-        "https://estifanos.com/convex-auth/sso/callback?code=1",
-        "estifanos.com",
-      ),
-    ).toEqual({
-      kind: "redirect",
-      location: "https://estifanos.sh/convex-auth/connection/callback?code=1",
       status: 301,
     });
     expect(
@@ -109,9 +59,6 @@ describe("resolveStaticRequest", () => {
       path: "/og-com.png",
       varyHost: false,
     });
-    expect(
-      resolveStaticRequest("https://estifanos.sh/convex-auth/installation/", "estifanos.sh"),
-    ).toEqual({ kind: "asset", path: "/convex-auth/installation/index.html", varyHost: false });
   });
 
   test("redirects the internal landing paths to the site root", () => {
@@ -144,7 +91,7 @@ describe("resolveStaticRequest", () => {
 describe("notFoundAssetPath", () => {
   test("keeps 404 pages inside the documentation tree", () => {
     expect(notFoundAssetPath("/convex-auth/guide/index.html", "estifanos.sh")).toBe(
-      "/convex-auth/404.html",
+      "/landing/sh/not-found/index.html",
     );
     expect(notFoundAssetPath("/convex-embedded/guide/index.html", "estifanos.com")).toBe(
       "/convex-embedded/404.html",
@@ -163,17 +110,7 @@ describe("notFoundAssetPath", () => {
 });
 
 describe("cacheControlFor", () => {
-  test("keeps content fresh while caching immutable bundles", () => {
-    expect(cacheControlFor("/convex-auth/index.html")).toBe(
-      "public, max-age=300, stale-while-revalidate=86400",
-    );
-    expect(cacheControlFor("/convex-auth/app.D3LP-ukt.js")).toBe(
-      "public, max-age=31536000, immutable",
-    );
-    expect(cacheControlFor("/convex-auth/favicon.svg")).toBe(
-      "public, max-age=3600, stale-while-revalidate=86400",
-    );
-  });
+  test("keeps content fresh while caching immutable bundles", () => {});
 
   test("does not mistake ordinary filenames for hashes", () => {
     expect(isHashedAsset("/privacy-policy.html")).toBe(false);

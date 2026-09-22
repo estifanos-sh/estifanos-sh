@@ -3,10 +3,6 @@ name: Production deployment
 on:
   workflow_dispatch:
     inputs:
-      convex_auth_ref:
-        description: Exact Convex Auth commit or ref to include
-        required: false
-        type: string
       convex_embedded_ref:
         description: Exact Convex Embedded commit or ref to include
         required: false
