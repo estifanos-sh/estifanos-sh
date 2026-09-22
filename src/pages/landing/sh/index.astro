@@ -1,6 +1,9 @@
 ---
 import SiteHeader from "../../../components/SiteHeader.astro";
 import LandingLayout from "../../../layouts/LandingLayout.astro";
+import configuration from "../../../../config/docs.json";
+
+const projects = configuration.projects.filter((project) => project.published);
 ---
 
 <LandingLayout
@@ -15,7 +18,7 @@ import LandingLayout from "../../../layouts/LandingLayout.astro";
       <p class="engineering-intro">Estifanos Engineering develops and maintains open-source software and SDKs.</p>
       <h1>Current Projects</h1>
       <ul class="project-links">
-        <li><a href="/convex-embedded/">@convex-embedded</a></li>
+        {projects.map((project) => <li><a href={project.mountPath}>@{project.id}</a></li>)}
       </ul>
     </main>
   </div>

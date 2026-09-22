@@ -27,6 +27,7 @@ interface ProjectConfiguration {
   mountPath: string;
   ref: string;
   repository: string;
+  published: boolean;
 }
 
 interface DocsConfiguration {
@@ -53,6 +54,8 @@ const configuration = JSON.parse(
 
 validateConfiguration(configuration);
 
+const publishedProjects = () => configuration.projects.filter((project) => project.published);
+
 const command = process.argv[2];
 if (command === "build") await buildProject();
 else if (command === "build-source") await buildSource();
@@ -71,7 +74,7 @@ async function assemble() {
   await requireFile(join(output, "index.html"), "landing page");
   await validateLandingLlmsTxt(output);
 
-  for (const project of configuration.projects) {
+  for (const project of publishedProjects()) {
     const source = join(artifacts, `docs-${project.id}`);
     const sourceInfo = await lstat(source).catch(() => undefined);
     if (!sourceInfo?.isDirectory() || sourceInfo.isSymbolicLink()) {
@@ -117,7 +120,7 @@ async function validateLandingLlmsTxt(output: string) {
   const file = join(output, "llms.txt");
   await requireFile(file, "landing llms.txt");
   const contents = await readFile(file, "utf8");
-  for (const project of configuration.projects) {
+  for (const project of publishedProjects()) {
     const llmsTxt = `${siteUrl}${project.mountPath}llms.txt`;
     if (!contents.includes(llmsTxt)) {
       throw new Error(`Landing llms.txt does not reference ${llmsTxt}`);
@@ -128,7 +131,7 @@ async function validateLandingLlmsTxt(output: string) {
 async function writeSitemap(output: string) {
   const urls = [`${siteUrl}/`];
 
-  for (const project of configuration.projects) {
+  for (const project of publishedProjects()) {
     const directory = join(output, project.id);
     const files = await readdir(directory, { recursive: true });
     for (const file of files.filter((entry) => entry.endsWith("index.html")).sort()) {
@@ -165,7 +168,7 @@ async function buildProject() {
 
 async function buildLocal() {
   const overrides = process.argv.slice(3);
-  for (const [index, project] of configuration.projects.entries()) {
+  for (const [index, project] of publishedProjects().entries()) {
     const source = overrides[index] || project.localPath;
     process.argv.splice(3, process.argv.length - 3, project.id, source);
     await buildProject();
@@ -183,14 +186,16 @@ async function buildSource() {
 }
 
 async function matrix() {
-  const event: { inputs?: { convex_embedded_ref?: string } } = process.env.GITHUB_EVENT_PATH
+  const event: { inputs?: { convex_auth_ref?: string; convex_embedded_ref?: string } } = process.env
+    .GITHUB_EVENT_PATH
     ? JSON.parse(await readFile(process.env.GITHUB_EVENT_PATH, "utf8"))
     : {};
   const refs: Record<string, string | undefined> = {
-    "convex-embedded": event.inputs?.convex_embedded_ref?.trim() || process.argv[3]?.trim(),
+    "convex-auth": event.inputs?.convex_auth_ref?.trim() || process.argv[3]?.trim(),
+    "convex-embedded": event.inputs?.convex_embedded_ref?.trim() || process.argv[4]?.trim(),
   };
 
-  const include = configuration.projects.map((project) => {
+  const include = publishedProjects().map((project) => {
     return {
       id: project.id,
       repository: project.repository,
@@ -278,6 +283,9 @@ function validateConfiguration(config: DocsConfiguration) {
       throw new Error(`Invalid or duplicate documentation project id: ${project.id}`);
     }
     ids.add(project.id);
+    if (typeof project.published !== "boolean") {
+      throw new Error(`Published flag must be boolean: ${project.id}`);
+    }
     if (project.mountPath !== `/${project.id}/`) {
       throw new Error(`Mount path must match project id: ${project.id}`);
     }

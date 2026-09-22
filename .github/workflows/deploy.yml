@@ -3,6 +3,10 @@ name: Production deployment
 on:
   workflow_dispatch:
     inputs:
+      convex_auth_ref:
+        description: Exact Convex Auth commit or ref to include
+        required: false
+        type: string
       convex_embedded_ref:
         description: Exact Convex Embedded commit or ref to include
         required: false
@@ -100,18 +104,12 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           pattern: docs-*
-          path: artifact-download
-
-      - name: Arrange documentation artifacts
-        run: |
-          source=artifact-download
-          if [ -d artifact-download/docs-convex-embedded ]; then source=artifact-download/docs-convex-embedded; fi
-          mkdir -p .docs/docs-convex-embedded
-          cp -R "$source"/. .docs/docs-convex-embedded/
+          path: .release-docs
 
       - name: Build, validate, and deploy production artifact
         env:
           CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+          DOCS_ARTIFACTS_DIR: .release-docs
         run: vp run deploy:release
 
       - name: Record deployment provenance
