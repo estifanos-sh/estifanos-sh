@@ -7,7 +7,7 @@
     "dev": "ASTRO_TELEMETRY_DISABLED=1 vp exec astro dev",
     "dev:convex": "vp exec convex dev",
     "build": "node scripts/docs.ts build-local && vp run build:release",
-    "build:release": "vp run cache:build && node scripts/docs.ts assemble .docs",
+    "build:release": "vp run cache:build && node scripts/docs.ts assemble ${DOCS_ARTIFACTS_DIR:-.docs}",
     "preview": "ASTRO_TELEMETRY_DISABLED=1 vp exec astro preview",
     "check": "vp run cache:check",
     "lint": "vp lint",

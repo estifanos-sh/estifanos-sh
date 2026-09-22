@@ -5,7 +5,7 @@ Source for [estifanos.com](https://estifanos.com) and
 
 - `estifanos.com` is the primary company landing page.
 - `estifanos.sh` is the project directory and serves project documentation at
-  `/convex-embedded/`.
+  `/convex-auth/` and `/convex-embedded/`.
 
 Both landing pages are static HTML and CSS. The HTTP handler selects the
 appropriate document for each hostname, so the landing output has no
@@ -25,8 +25,8 @@ vp install
 vp dev
 ```
 
-Keep a sibling checkout of `convex-embedded`, then build the complete site
-from this repository:
+Keep sibling checkouts of `convex-auth` and `convex-embedded`, then build the
+complete site from this repository:
 
 ```sh
 vp run build
@@ -40,8 +40,8 @@ static assets. Each Markdown file is named after its slug (for example,
 `api/request.md`), and frontmatter is the sole source of its title and
 description. `vp run build` rejects `+page.md`, Svelte or script markup,
 custom MDX components, and Markdown H1 titles. It validates both contracts, renders both sites,
-generates Pagefind and the `llms` files, and assembles `/convex-embedded/`
-into the ignored `dist/client` deployment artifact.
+generates Pagefind and the `llms` files, and assembles `/convex-auth/` and
+`/convex-embedded/` into the ignored `dist/client` deployment artifact.
 `config/docs.json` is the allowlist of source repositories, refs, local paths,
 and public mount paths.
 
