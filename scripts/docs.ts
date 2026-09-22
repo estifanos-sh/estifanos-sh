@@ -74,8 +74,12 @@ async function assemble() {
   await requireFile(join(output, "index.html"), "landing page");
   await validateLandingLlmsTxt(output);
 
-  for (const project of publishedProjects()) {
-    const source = join(artifacts, `docs-${project.id}`);
+  const projects = publishedProjects();
+  for (const project of projects) {
+    const configuredSource = join(artifacts, `docs-${project.id}`);
+    const configuredSourceInfo = await lstat(configuredSource).catch(() => undefined);
+    const source =
+      configuredSourceInfo?.isDirectory() || projects.length !== 1 ? configuredSource : artifacts;
     const sourceInfo = await lstat(source).catch(() => undefined);
     if (!sourceInfo?.isDirectory() || sourceInfo.isSymbolicLink()) {
       throw new Error(`Documentation source is not a directory: ${source}`);
