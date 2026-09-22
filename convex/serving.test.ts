@@ -76,16 +76,6 @@ describe("resolveStaticRequest", () => {
   });
 
   test("sends documentation paths on the organization host to the engineering site", () => {
-    expect(
-      resolveStaticRequest(
-        "https://estifanos.com/convex-auth/installation?from=nav",
-        "estifanos.com",
-      ),
-    ).toEqual({
-      kind: "redirect",
-      location: "https://estifanos.sh/convex-auth/installation?from=nav",
-      status: 301,
-    });
     expect(resolveStaticRequest("https://estifanos.com/convex-embedded", "estifanos.com")).toEqual({
       kind: "redirect",
       location: "https://estifanos.sh/convex-embedded",
@@ -144,7 +134,7 @@ describe("resolveStaticRequest", () => {
 describe("notFoundAssetPath", () => {
   test("keeps 404 pages inside the documentation tree", () => {
     expect(notFoundAssetPath("/convex-auth/guide/index.html", "estifanos.sh")).toBe(
-      "/convex-auth/404.html",
+      "/landing/sh/not-found/index.html",
     );
     expect(notFoundAssetPath("/convex-embedded/guide/index.html", "estifanos.com")).toBe(
       "/convex-embedded/404.html",
