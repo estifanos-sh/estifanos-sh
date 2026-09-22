@@ -103,7 +103,11 @@ jobs:
           path: artifact-download
 
       - name: Arrange documentation artifacts
-        run: mkdir -p .docs && mv artifact-download/docs-* .docs/
+        run: |
+          source=artifact-download
+          if [ -d artifact-download/docs-convex-embedded ]; then source=artifact-download/docs-convex-embedded; fi
+          mkdir -p .docs/docs-convex-embedded
+          cp -R "$source"/. .docs/docs-convex-embedded/
 
       - name: Build, validate, and deploy production artifact
         env:
