@@ -100,8 +100,10 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           pattern: docs-*
-          path: .docs
-          merge-multiple: true
+          path: artifact-download
+
+      - name: Arrange documentation artifacts
+        run: mkdir -p .docs && mv artifact-download/docs-* .docs/
 
       - name: Build, validate, and deploy production artifact
         env:
