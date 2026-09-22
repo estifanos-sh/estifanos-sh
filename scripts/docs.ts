@@ -183,13 +183,11 @@ async function buildSource() {
 }
 
 async function matrix() {
-  const event: { inputs?: { convex_auth_ref?: string; convex_embedded_ref?: string } } = process.env
-    .GITHUB_EVENT_PATH
+  const event: { inputs?: { convex_embedded_ref?: string } } = process.env.GITHUB_EVENT_PATH
     ? JSON.parse(await readFile(process.env.GITHUB_EVENT_PATH, "utf8"))
     : {};
   const refs: Record<string, string | undefined> = {
-    "convex-auth": event.inputs?.convex_auth_ref?.trim() || process.argv[3]?.trim(),
-    "convex-embedded": event.inputs?.convex_embedded_ref?.trim() || process.argv[4]?.trim(),
+    "convex-embedded": event.inputs?.convex_embedded_ref?.trim() || process.argv[3]?.trim(),
   };
 
   const include = configuration.projects.map((project) => {

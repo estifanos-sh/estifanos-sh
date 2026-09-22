@@ -27,7 +27,7 @@ const MIME_TYPES: Record<string, string> = {
 const ENGINEERING_HOST = "estifanos.sh";
 const ORGANIZATION_HOST = "estifanos.com";
 // Mirrors the mount paths in config/docs.json.
-const DOCS_MOUNTS = ["/convex-auth", "/convex-embedded"];
+const DOCS_MOUNTS = ["/convex-embedded"];
 // Artifact space for host-specific landing documents, not a public URL space.
 const LANDING_PREFIX = "/landing/";
 
@@ -49,10 +49,8 @@ export function resolveStaticRequest(requestUrl: string, host: string | null): S
   const organizationDocs =
     normalizeHost(host) === ORGANIZATION_HOST &&
     DOCS_MOUNTS.some((mount) => path === mount || path.startsWith(`${mount}/`));
-  const legacySso = path === "/convex-auth/sso" || path.startsWith("/convex-auth/sso/");
-  if (organizationDocs || legacySso) {
-    if (organizationDocs) url.hostname = ENGINEERING_HOST;
-    if (legacySso) url.pathname = path.replace("/convex-auth/sso", "/convex-auth/connection");
+  if (organizationDocs) {
+    url.hostname = ENGINEERING_HOST;
     return { kind: "redirect", location: url.toString(), status: 301 };
   }
 

@@ -1,8 +1,8 @@
 # estifanos-sh
 
 This repository builds the static `estifanos.com` and `estifanos.sh` landing
-pages plus Astro-rendered product documentation for Convex Auth and Convex
-Embedded. Static output is uploaded through the Convex static-hosting
+pages plus Astro-rendered product documentation for Convex Embedded. Static
+output is uploaded through the Convex static-hosting
 component and served by `convex/http.ts`.
 
 ## Commands
@@ -24,7 +24,7 @@ documentation rendering use Astro's static build command through Vite+ tasks.
   use Starlight.
 - Product repositories provide `docs/docs.json` and clean
   `docs/content/**/*.md` content. The engine validates and assembles their
-  output under `/convex-auth/` and `/convex-embedded/`.
+  output under `/convex-embedded/`.
 - `convex/http.ts` resolves static files, directory URLs, scoped product 404s,
   and the hostname-selected engineering landing page.
 

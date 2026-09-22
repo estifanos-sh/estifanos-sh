@@ -4,7 +4,6 @@
 
 ## Documentation
 
-- [Convex Auth](https://estifanos.sh/convex-auth/llms.txt): Authentication and authorization for Convex applications using @estifanos-sh/convex-auth.
 - [Convex Embedded](https://estifanos.sh/convex-embedded/llms.txt): Local-first storage and replication for Convex applications using @estifanos-sh/convex-embedded.
 
 ## Pages
@@ -14,6 +13,5 @@
 
 ## Optional
 
-- [Convex Auth complete documentation](https://estifanos.sh/convex-auth/llms-full.txt): Every Convex Auth page in one file.
 - [Convex Embedded complete documentation](https://estifanos.sh/convex-embedded/llms-full.txt): Every Convex Embedded page in one file.
 - [Sitemap](https://estifanos.sh/sitemap.xml): Every indexable URL on the engineering site.
